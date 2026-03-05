@@ -1,10 +1,46 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import { useTilt } from '../../hooks/useTilt.js';
 
-export default function ProjectCard({ project, onOpen }) {
-  const { title, description, techStack, github, demo } = project;
+function formatDate(value) {
+  if (!value) return 'N/A';
+  return new Date(value).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+function ComplexityMeter({ value }) {
+  return (
+    <div className="flex items-center gap-1">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <span
+          key={`complexity-${index}`}
+          className="h-1.5 w-6 rounded-full"
+          style={{
+            background:
+              index < value
+                ? 'linear-gradient(to right, var(--accent-color), #8b5cf6)'
+                : 'color-mix(in oklab, var(--theme-border) 85%, transparent)',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+export default function ProjectCard({
+  project,
+  onOpen,
+  onTechExplore,
+  githubStats,
+  compared,
+  onCompareToggle,
+  onShare,
+}) {
   const reducedMotion = useReducedMotion();
   const { tilt, onMouseMove, onMouseLeave } = useTilt(9);
+  const snippetPreview = project.codeSnippets?.[0]?.code || '';
 
   const handleClick = () => {
     if (onOpen) onOpen(project);
@@ -34,53 +70,138 @@ export default function ProjectCard({ project, onOpen }) {
     >
       <div>
         <motion.div
-          className="theme-surface mb-4 overflow-hidden rounded-xl"
-          whileHover={reducedMotion ? undefined : { rotate: -1.4 }}
+          className="relative mb-4 overflow-hidden rounded-xl border border-[var(--theme-border)]"
+          whileHover={reducedMotion ? undefined : { rotate: -0.8 }}
           transition={{ duration: 0.35 }}
         >
-          <motion.div
-            className="theme-text-muted flex h-28 items-center justify-center text-xl font-semibold tracking-wide"
-            whileHover={reducedMotion ? undefined : { scale: 1.08, rotate: 1.1 }}
+          <motion.img
+            src={project.screenshot}
+            alt={`${project.title} preview`}
+            className="h-32 w-full object-cover"
+            whileHover={reducedMotion ? undefined : { scale: 1.08, rotate: 0.5 }}
             transition={{ duration: 0.35 }}
-          >
-            {title.slice(0, 2).toUpperCase()}
-          </motion.div>
+            loading="lazy"
+          />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-3 py-2 text-xs text-white">
+            Live demo preview
+          </div>
         </motion.div>
 
-        <h3 className="theme-text-primary font-heading text-base font-semibold sm:text-lg">{title}</h3>
-        <p className="theme-text-muted mt-2 text-xs leading-relaxed sm:text-sm">{description}</p>
-
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {techStack.map((tech) => (
-            <span
-              key={tech}
-              className="theme-chip rounded-full px-2.5 py-1 text-[10px] font-medium"
-            >
-              {tech}
-            </span>
-          ))}
+        <div className="mb-2 flex items-start justify-between gap-2">
+          <h3 className="theme-text-primary font-heading text-base font-semibold sm:text-lg">
+            {project.title}
+          </h3>
+          <span className="theme-text-soft text-[11px]">{formatDate(project.date)}</span>
         </div>
+
+        <p className="theme-text-muted text-xs leading-relaxed sm:text-sm">{project.description}</p>
+
+        <div className="mt-3">
+          <p className="theme-text-soft mb-1 text-[11px]">Complexity</p>
+          <ComplexityMeter value={project.complexity || 1} />
+        </div>
+
+        <div className="mt-3">
+          <p className="theme-text-soft mb-1 text-[11px]">Tech Stack Explorer</p>
+          <div className="flex flex-wrap gap-1.5">
+            {project.techStack.map((tech) => (
+              <motion.button
+                key={tech}
+                type="button"
+                className="theme-chip rounded-full px-2.5 py-1 text-[10px] font-medium"
+                whileHover={reducedMotion ? undefined : { y: -2, scale: 1.03 }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onTechExplore?.(tech);
+                }}
+              >
+                {tech}
+              </motion.button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          <div className="theme-chip rounded-lg p-2 text-[10px]">
+            <p>Stars</p>
+            <p className="theme-text-primary mt-0.5 text-xs font-semibold">{githubStats?.stars ?? '--'}</p>
+          </div>
+          <div className="theme-chip rounded-lg p-2 text-[10px]">
+            <p>Forks</p>
+            <p className="theme-text-primary mt-0.5 text-xs font-semibold">{githubStats?.forks ?? '--'}</p>
+          </div>
+          <div className="theme-chip rounded-lg p-2 text-[10px]">
+            <p>Last Commit</p>
+            <p className="theme-text-primary mt-0.5 text-xs font-semibold">
+              {githubStats?.lastCommit ? formatDate(githubStats.lastCommit) : '--'}
+            </p>
+          </div>
+        </div>
+
+        {snippetPreview && (
+          <motion.pre
+            className="theme-chip mt-3 max-h-0 overflow-hidden whitespace-pre-wrap rounded-lg p-0 text-[10px] leading-relaxed opacity-0 group-hover:max-h-28 group-hover:p-2 group-hover:opacity-100"
+            transition={{ duration: 0.25 }}
+          >
+            {snippetPreview}
+          </motion.pre>
+        )}
       </div>
 
-      <div className="mt-4 flex gap-2 text-xs font-medium">
-        <a
-          href={github}
-          target="_blank"
-          rel="noreferrer"
-          className="theme-button-secondary interactive inline-flex flex-1 items-center justify-center rounded-full px-3 py-1.5 transition"
-          onClick={(event) => event.stopPropagation()}
-        >
-          View GitHub
-        </a>
-        <a
-          href={demo || '#'}
-          target="_blank"
-          rel="noreferrer"
-          className="theme-button-primary interactive inline-flex flex-1 items-center justify-center rounded-full px-3 py-1.5 transition"
-          onClick={(event) => event.stopPropagation()}
-        >
-          Live Demo
-        </a>
+      <div className="mt-4 space-y-2">
+        <div className="flex gap-2 text-xs font-medium">
+          <a
+            href={project.github}
+            target="_blank"
+            rel="noreferrer"
+            className="theme-button-secondary interactive inline-flex flex-1 items-center justify-center rounded-full px-3 py-1.5 transition"
+            onClick={(event) => event.stopPropagation()}
+          >
+            GitHub
+          </a>
+          <a
+            href={project.demo || '#'}
+            target="_blank"
+            rel="noreferrer"
+            className="theme-button-primary interactive inline-flex flex-1 items-center justify-center rounded-full px-3 py-1.5 transition"
+            onClick={(event) => event.stopPropagation()}
+          >
+            Demo
+          </a>
+          <button
+            type="button"
+            className="theme-button-secondary interactive inline-flex items-center justify-center rounded-full px-3 py-1.5"
+            onClick={(event) => {
+              event.stopPropagation();
+              onShare?.(project);
+            }}
+          >
+            Share
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between text-xs">
+          <button
+            type="button"
+            className="theme-chip rounded-full px-3 py-1"
+            onClick={(event) => {
+              event.stopPropagation();
+              onCompareToggle?.(project.id);
+            }}
+          >
+            {compared ? 'In Compare' : 'Compare'}
+          </button>
+          <button
+            type="button"
+            className="theme-button-primary rounded-full px-3 py-1"
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpen?.(project);
+            }}
+          >
+            View Details
+          </button>
+        </div>
       </div>
     </motion.article>
   );
