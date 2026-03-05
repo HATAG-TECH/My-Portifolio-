@@ -81,6 +81,18 @@ html[data-theme='light'] {
   color: var(--accent-color);
 }
 
+.text-primary {
+  color: var(--accent-color) !important;
+}
+
+.bg-primary {
+  background-color: var(--accent-color) !important;
+}
+
+.border-primary {
+  border-color: var(--accent-color) !important;
+}
+
 .theme-navbar {
   border-color: var(--theme-border);
   background: color-mix(in oklab, var(--theme-surface) 84%, transparent);

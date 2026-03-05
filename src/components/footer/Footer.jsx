@@ -1,7 +1,7 @@
 export default function Footer() {
   return (
-    <footer className="border-t border-slate-800/60 bg-slate-950/80">
-      <div className="section-container flex flex-col items-center justify-between gap-3 py-5 text-xs text-slate-400 sm:flex-row">
+    <footer className="theme-navbar border-t">
+      <div className="section-container theme-text-soft flex flex-col items-center justify-between gap-3 py-5 text-xs sm:flex-row">
         <p>Copyright 2026 HATAG Tech - Habtamu Shewamene</p>
         <div className="flex gap-4">
           <a
