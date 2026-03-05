@@ -1,21 +1,41 @@
+// server/app.js
 import express from 'express';
+import cors from 'cors';
 import helmet from 'helmet';
-import apiRoutes from './routes/index.js';
-import { corsMiddleware } from './config/cors.js';
-import { sanitizeInput } from './middleware/sanitizeInput.js';
-import { notFound } from './middleware/notFound.js';
-import { errorHandler } from './middleware/errorHandler.js';
+import { env } from './config/env.js';
+import contactRoutes from './routes/contactRoutes.js';
 
 const app = express();
 
+// Middleware
 app.use(helmet());
-app.use(corsMiddleware);
-app.use(express.json({ limit: '1mb' }));
-app.use(sanitizeInput);
+app.use(cors({
+  origin: env.clientOrigin,
+  credentials: true
+}));
+app.use(express.json());
 
-app.use('/api', apiRoutes);
+// Routes
+app.use('/api/contact', contactRoutes);
 
-app.use(notFound);
-app.use(errorHandler);
+// Test endpoint
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'Server is running!',
+    environment: env.nodeEnv,
+    emailConfigured: env.email.configured
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
 
 export default app;

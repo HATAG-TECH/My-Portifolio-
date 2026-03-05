@@ -1,11 +1,23 @@
-import { Router } from 'express';
-import { submitContact } from '../controllers/contactController.js';
-import { validateBody } from '../middleware/validate.js';
-import { contactRequestSchema } from '../models/schemas.js';
-import { contactLimiter } from '../middleware/rateLimiters.js';
+// server/routes/contactRoutes.js
+import express from 'express';
+import rateLimit from 'express-rate-limit';
+import { contactController } from '../controllers/contactController.js';
+import { env } from '../config/env.js';
 
-const router = Router();
+const router = express.Router();
 
-router.post('/', contactLimiter, validateBody(contactRequestSchema), submitContact);
+// Rate limiting for contact form
+const contactLimiter = rateLimit({
+  windowMs: env.rateLimits.contact.windowMs,
+  max: env.rateLimits.contact.max,
+  message: { error: 'Too many messages from this IP, please try again later.' },
+  trustProxy: env.trustProxy,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Contact routes
+router.post('/', contactLimiter, contactController.sendMessage);
+router.get('/status', contactController.getStatus);
 
 export default router;
