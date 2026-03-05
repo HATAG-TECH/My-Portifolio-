@@ -1,106 +1,122 @@
-import { Route, Routes } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from './components/navbar/Navbar.jsx';
 import Hero from './components/hero/Hero.jsx';
-import About from './components/about/About.jsx';
-import ProjectGrid from './components/projects/ProjectGrid.jsx';
-import Skills from './components/skills/Skills.jsx';
-import Timeline from './components/experience/Timeline.jsx';
-import ContactForm from './components/contact/ContactForm.jsx';
 import ChatBot from './components/ai/ChatBot.jsx';
 import Footer from './components/footer/Footer.jsx';
-import { motion } from 'framer-motion';
+import CustomCursor from './components/ui/CustomCursor.jsx';
+import ShimmerSkeleton from './components/ui/ShimmerSkeleton.jsx';
+import { useSectionReveal } from './hooks/useSectionReveal.js';
+import { useParallax } from './hooks/useParallax.js';
+
+const About = lazy(() => import('./components/about/About.jsx'));
+const ProjectGrid = lazy(() => import('./components/projects/ProjectGrid.jsx'));
+const Skills = lazy(() => import('./components/skills/Skills.jsx'));
+const Timeline = lazy(() => import('./components/experience/Timeline.jsx'));
+const ContactForm = lazy(() => import('./components/contact/ContactForm.jsx'));
+
+function SectionSkeleton() {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ShimmerSkeleton className="h-44" />
+      <ShimmerSkeleton className="h-44" />
+      <ShimmerSkeleton className="h-44 sm:col-span-2 lg:col-span-1" />
+    </div>
+  );
+}
+
+function RevealSection({ id, className = '', children }) {
+  const reveal = useSectionReveal({ once: true, amount: 0.22 });
+  return (
+    <motion.section
+      id={id}
+      ref={reveal.ref}
+      className={`section-padding ${className}`}
+      variants={reveal.variants}
+      initial="hidden"
+      animate={reveal.controls}
+    >
+      <div className="section-container">{children}</div>
+    </motion.section>
+  );
+}
 
 function HomePage() {
+  const parallaxY = useParallax(110);
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-light to-slate-100 text-slate-900 transition-colors duration-500 dark:bg-gradient-to-b dark:from-slate-950 dark:via-dark dark:to-slate-950 dark:text-slate-100">
-      <div className="pointer-events-none absolute -left-32 top-10 h-64 w-64 rounded-full bg-primary/20 blur-3xl dark:bg-primary/30" />
-      <div className="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-secondary/15 blur-3xl dark:bg-secondary/25" />
+    <motion.div
+      className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-light to-slate-100 text-slate-900 transition-colors duration-500 dark:bg-gradient-to-b dark:from-slate-950 dark:via-dark dark:to-slate-950 dark:text-slate-100"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -12 }}
+      transition={{ duration: 0.45 }}
+    >
+      <motion.div
+        className="pointer-events-none absolute -left-32 top-10 h-64 w-64 rounded-full bg-primary/20 blur-3xl dark:bg-primary/30"
+        style={{ y: parallaxY }}
+      />
+      <motion.div
+        className="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-secondary/15 blur-3xl dark:bg-secondary/25"
+        style={{ y: parallaxY }}
+      />
 
       <Navbar />
-      <main className="relative pt-20 space-y-0">
+      <main className="relative space-y-0 pt-20">
         <section id="home" className="section-padding">
           <div className="section-container">
             <Hero />
           </div>
         </section>
 
-        <motion.section
-          id="about"
-          className="section-padding bg-slate-900/40"
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="section-container">
+        <RevealSection id="about" className="bg-slate-900/40">
+          <Suspense fallback={<SectionSkeleton />}>
             <About />
-          </div>
-        </motion.section>
+          </Suspense>
+        </RevealSection>
 
-        <motion.section
-          id="projects"
-          className="section-padding"
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.5, delay: 0.05 }}
-        >
-          <div className="section-container">
+        <RevealSection id="projects">
+          <Suspense fallback={<SectionSkeleton />}>
             <ProjectGrid />
-          </div>
-        </motion.section>
+          </Suspense>
+        </RevealSection>
 
-        <motion.section
-          id="skills"
-          className="section-padding bg-slate-900/40"
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <div className="section-container">
+        <RevealSection id="skills" className="bg-slate-900/40">
+          <Suspense fallback={<SectionSkeleton />}>
             <Skills />
-          </div>
-        </motion.section>
+          </Suspense>
+        </RevealSection>
 
-        <motion.section
-          id="experience"
-          className="section-padding"
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.5, delay: 0.15 }}
-        >
-          <div className="section-container">
+        <RevealSection id="experience">
+          <Suspense fallback={<SectionSkeleton />}>
             <Timeline />
-          </div>
-        </motion.section>
+          </Suspense>
+        </RevealSection>
 
-        <motion.section
-          id="contact"
-          className="section-padding bg-slate-900/40"
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <div className="section-container">
+        <RevealSection id="contact" className="bg-slate-900/40">
+          <Suspense fallback={<SectionSkeleton />}>
             <ContactForm />
-          </div>
-        </motion.section>
+          </Suspense>
+        </RevealSection>
       </main>
 
       <ChatBot />
       <Footer />
-    </div>
+      <CustomCursor />
+    </motion.div>
   );
 }
 
 export default function App() {
+  const location = useLocation();
+
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-    </Routes>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </AnimatePresence>
   );
 }
-

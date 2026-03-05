@@ -96,7 +96,7 @@ export default function HeroBackground() {
 
   return (
     <div
-      className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]"
+      className="absolute inset-0 overflow-hidden rounded-[2rem]"
       onMouseMove={(event) => {
         const rect = event.currentTarget.getBoundingClientRect();
         pointerRef.current = {
