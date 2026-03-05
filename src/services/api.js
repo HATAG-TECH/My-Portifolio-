@@ -2,13 +2,20 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: '/api',
+  timeout: 10_000,
+  headers: { 'Content-Type': 'application/json' },
 });
 
-export async function fetchProjects() {
-  const { data } = await api.get('/projects');
+export async function fetchProjects(params = {}) {
+  const { data } = await api.get('/projects', { params });
   if (Array.isArray(data)) return data;
   if (Array.isArray(data?.data)) return data.data;
   return [];
+}
+
+export async function fetchProjectById(id) {
+  const { data } = await api.get(`/projects/${id}`);
+  return data?.data || null;
 }
 
 export async function sendContactMessage(payload) {
@@ -16,8 +23,17 @@ export async function sendContactMessage(payload) {
   return data;
 }
 
-export async function sendChatMessage(message) {
-  const { data } = await api.post('/chat', { message });
+export async function sendChatMessage(message, sessionId = '') {
+  const { data } = await api.post('/chat', { message, sessionId });
   return data;
 }
 
+export async function fetchStats() {
+  const { data } = await api.get('/stats');
+  return data?.data || null;
+}
+
+export async function fetchVisitorSnapshot() {
+  const { data } = await api.get('/visitor');
+  return data?.data || null;
+}

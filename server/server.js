@@ -10,11 +10,11 @@ async function startServer() {
   }
 
   app.listen(env.port, () => {
-    console.log(`Portfolio API listening on http://localhost:${env.port}`);
+    console.log(`Server listening on http://localhost:${env.port}`);
   });
 }
 
 startServer().catch((error) => {
-  console.error('Server startup failed', error);
+  console.error('Failed to start server:', error);
   process.exit(1);
 });

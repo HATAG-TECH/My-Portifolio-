@@ -1,188 +1,169 @@
 import { useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { sendContactMessage } from '../../services/api.js';
-import FloatingField from '../ui/FloatingField.jsx';
-import MagneticButton from '../ui/MagneticButton.jsx';
 
-const confettiPieces = Array.from({ length: 22 }, (_, index) => ({
-  id: index,
-  left: `${Math.random() * 100}%`,
-  delay: Math.random() * 0.25,
-  duration: 0.7 + Math.random() * 0.5,
-}));
-
-function validate(form) {
-  const errors = {};
-  if (!form.name.trim()) errors.name = 'Name is required.';
-  if (!form.email.trim()) {
-    errors.email = 'Email is required.';
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-    errors.email = 'Please enter a valid email address.';
-  }
-  if (!form.message.trim()) errors.message = 'Message is required.';
-  if (!form.consent) errors.consent = 'Please provide GDPR consent before sending.';
-  return errors;
+function extractApiError(error) {
+  const payload = error?.response?.data;
+  if (!payload) return 'Unable to reach server. Make sure backend is running.';
+  if (Array.isArray(payload.errors) && payload.errors.length) return payload.errors[0];
+  return payload.message || payload.error || 'Something went wrong. Please try again.';
 }
 
 export default function ContactForm() {
-  const [form, setForm] = useState({
+  const [formData, setFormData] = useState({
     name: '',
     email: '',
     message: '',
     consent: false,
     website: '',
   });
-  const [status, setStatus] = useState({ loading: false, success: '', error: '' });
-  const [errors, setErrors] = useState({});
-  const [showConfetti, setShowConfetti] = useState(false);
-  const reducedMotion = useReducedMotion();
+  const [status, setStatus] = useState({ loading: false, success: false, error: '' });
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
-    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-    setErrors((prev) => ({ ...prev, [name]: '' }));
-  };
-
-  const handleBlur = (event) => {
-    const { name } = event.target;
-    const validationErrors = validate(form);
-    setErrors((prev) => ({ ...prev, [name]: validationErrors[name] || '' }));
+    setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    if (status.error) setStatus((prev) => ({ ...prev, error: '' }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const validationErrors = validate(form);
-    if (Object.keys(validationErrors).length) {
-      setErrors(validationErrors);
+    if (!formData.name || !formData.email || !formData.message) {
+      setStatus({ loading: false, success: false, error: 'Please fill in all fields.' });
+      return;
+    }
+    if (!formData.consent) {
+      setStatus({ loading: false, success: false, error: 'Please provide GDPR consent.' });
       return;
     }
 
-    setStatus({ loading: true, success: '', error: '' });
+    setStatus({ loading: true, success: false, error: '' });
     try {
-      await sendContactMessage(form);
+      await sendContactMessage(formData);
+      setStatus({ loading: false, success: true, error: '' });
+      setFormData({ name: '', email: '', message: '', consent: false, website: '' });
+      window.setTimeout(() => {
+        setStatus({ loading: false, success: false, error: '' });
+      }, 4500);
+    } catch (error) {
       setStatus({
         loading: false,
-        success: 'Thanks for reaching out! I will get back to you soon.',
-        error: '',
-      });
-      setForm({ name: '', email: '', message: '', consent: false, website: '' });
-      setShowConfetti(true);
-      window.setTimeout(() => setShowConfetti(false), 1300);
-    } catch {
-      setStatus({
-        loading: false,
-        success: '',
-        error: 'Something went wrong sending your message. Please try again later.',
+        success: false,
+        error: extractApiError(error),
       });
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="theme-text-primary font-heading text-2xl font-semibold sm:text-3xl">
-          Let&apos;s <span className="theme-text-accent">Connect</span>
-        </h2>
-        <p className="theme-text-muted mt-2 max-w-xl text-sm">
-          Whether you have a project in mind, feedback on my work, or just want to say hi, feel
-          free to send a message.
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="theme-surface relative max-w-xl space-y-4 rounded-2xl p-5">
-        {showConfetti && !reducedMotion && (
-          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
-            {confettiPieces.map((piece) => (
-              <motion.span
-                key={piece.id}
-                className="absolute top-4 h-2 w-2 rounded-sm bg-gradient-to-r from-sky-400 to-violet-400"
-                style={{ left: piece.left }}
-                initial={{ opacity: 1, y: 0, rotate: 0 }}
-                animate={{ opacity: 0, y: 130, rotate: 220 }}
-                transition={{ duration: piece.duration, delay: piece.delay }}
-              />
-            ))}
-          </div>
-        )}
-
-        <FloatingField
-          id="name"
-          name="name"
-          label="Name"
-          value={form.name}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-          error={errors.name}
-        />
-
-        <FloatingField
-          id="email"
-          name="email"
-          type="email"
-          label="Email"
-          value={form.email}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-          error={errors.email}
-        />
-
-        <FloatingField
-          id="message"
-          name="message"
-          label="Message"
-          as="textarea"
-          rows={4}
-          value={form.message}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-          error={errors.message}
-        />
-
-        <label className="flex items-start gap-2 text-xs theme-text-muted">
-          <input
-            type="checkbox"
-            name="consent"
-            checked={form.consent}
-            onChange={handleChange}
-            className="mt-0.5"
-          />
-          <span>I consent to data processing for this contact request (GDPR).</span>
-        </label>
-        {errors.consent && <p className="text-xs text-rose-300">{errors.consent}</p>}
-
-        <input
-          type="text"
-          name="website"
-          value={form.website}
-          onChange={handleChange}
-          tabIndex={-1}
-          autoComplete="off"
-          className="hidden"
-          aria-hidden="true"
-        />
-
-        <MagneticButton
-          type="submit"
-          disabled={status.loading}
-          className="theme-button-primary interactive inline-flex items-center justify-center rounded-full px-6 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-70"
+    <section id="contact" className="section-padding">
+      <div className="section-container max-w-3xl">
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          className="theme-text-primary mb-10 text-center font-heading text-4xl font-bold"
         >
-          {status.loading ? 'Sending...' : 'Send Message'}
-        </MagneticButton>
+          Get In Touch
+        </motion.h2>
 
-        {status.success && (
-          <motion.p
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-xs text-emerald-400 sm:text-sm"
+        <motion.form
+          onSubmit={handleSubmit}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="theme-surface space-y-5 rounded-2xl p-6"
+        >
+          <div>
+            <label className="theme-text-muted mb-2 block text-sm font-medium">Name</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className="theme-input w-full rounded-lg border px-4 py-3 text-sm"
+              placeholder="Your name"
+              disabled={status.loading}
+            />
+          </div>
+
+          <div>
+            <label className="theme-text-muted mb-2 block text-sm font-medium">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="theme-input w-full rounded-lg border px-4 py-3 text-sm"
+              placeholder="you@example.com"
+              disabled={status.loading}
+            />
+          </div>
+
+          <div>
+            <label className="theme-text-muted mb-2 block text-sm font-medium">Message</label>
+            <textarea
+              name="message"
+              value={formData.message}
+              onChange={handleChange}
+              rows={5}
+              className="theme-input w-full resize-none rounded-lg border px-4 py-3 text-sm"
+              placeholder="Tell me about your project..."
+              disabled={status.loading}
+            />
+          </div>
+
+          <label className="theme-text-muted flex items-start gap-2 text-xs">
+            <input
+              type="checkbox"
+              name="consent"
+              checked={formData.consent}
+              onChange={handleChange}
+              className="mt-0.5"
+              disabled={status.loading}
+            />
+            <span>I consent to processing my message and contact details for this request.</span>
+          </label>
+
+          <input
+            type="text"
+            name="website"
+            value={formData.website}
+            onChange={handleChange}
+            className="hidden"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+          />
+
+          {status.error && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-lg bg-red-500/10 p-3 text-sm text-red-400"
+            >
+              {status.error}
+            </motion.div>
+          )}
+
+          {status.success && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-lg bg-emerald-500/10 p-3 text-sm text-emerald-400"
+            >
+              Message sent successfully. I&apos;ll get back to you soon.
+            </motion.div>
+          )}
+
+          <button
+            type="submit"
+            disabled={status.loading}
+            className={`theme-button-primary w-full rounded-lg px-6 py-3 text-sm font-semibold ${
+              status.loading ? 'cursor-not-allowed opacity-60' : ''
+            }`}
           >
-            {status.success}
-          </motion.p>
-        )}
-        {status.error && <p className="text-xs text-red-400 sm:text-sm">{status.error}</p>}
-      </form>
-    </div>
+            {status.loading ? 'Sending...' : 'Send Message'}
+          </button>
+        </motion.form>
+      </div>
+    </section>
   );
 }
