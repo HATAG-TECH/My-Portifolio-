@@ -2,14 +2,14 @@ import { motion } from 'framer-motion';
 
 const backdropVariants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1 },
+  visible: { opacity: 1, backdropFilter: 'blur(8px)' },
   exit: { opacity: 0 },
 };
 
 const modalVariants = {
-  hidden: { opacity: 0, y: 40, scale: 0.95 },
-  visible: { opacity: 1, y: 0, scale: 1 },
-  exit: { opacity: 0, y: 40, scale: 0.95 },
+  hidden: { opacity: 0, y: 40, scale: 0.92, filter: 'blur(10px)' },
+  visible: { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' },
+  exit: { opacity: 0, y: 40, scale: 0.95, filter: 'blur(6px)' },
 };
 
 export default function ProjectModal({ project, onClose }) {
@@ -17,7 +17,7 @@ export default function ProjectModal({ project, onClose }) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/70 px-3 py-4 backdrop-blur-md sm:items-center sm:px-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/70 px-3 py-4 sm:items-center sm:px-4"
       variants={backdropVariants}
       initial="hidden"
       animate="visible"
