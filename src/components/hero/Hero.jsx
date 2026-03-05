@@ -1,8 +1,43 @@
-import { motion } from 'framer-motion';
+import { useRef } from 'react';
+import { motion, useAnimation } from 'framer-motion';
+import AnimatedBackground from '../AnimatedBackground.jsx';
+import { useTypewriter } from '../../hooks/useTypewriter.js';
+import useReducedMotion from '../../hooks/useReducedMotion.js';
+import useMagnetic from '../../hooks/useMagnetic.js';
+import useParallax from '../../hooks/useParallax.js';
+
+const roles = [
+  'Full Stack Developer',
+  'React Enthusiast',
+  'Node.js Lover',
+  'Java & Spring Dev',
+  'Open‑Source Contributor',
+];
 
 export default function Hero() {
+  const reduced = useReducedMotion();
+  const typed = useTypewriter(roles, { typeSpeed: 120, deleteSpeed: 50, pauseDuration: 1200 });
+  const ctaRef = useRef(null);
+  const progress = useParallax(0.15);
+  const controls = useAnimation();
+
+  useMagnetic(ctaRef, { strength: 0.25, distance: 120 });
+
+  const handleScrollInto = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // simple floating shapes using scroll parallax
+  const shapeStyle = {
+    transform: `translateY(${progress}px)`,
+  };
+
   return (
-    <div className="flex flex-col gap-10 md:flex-row md:items-center">
+    <div className="relative flex flex-col gap-10 md:flex-row md:items-center">
+      {/* background canvases */}
+      {!reduced && <AnimatedBackground />}
+
       <div className="flex-1 space-y-6">
         <motion.p
           className="text-sm font-medium uppercase tracking-[0.25em] text-primary"
@@ -25,7 +60,7 @@ export default function Hero() {
           </span>
           <br />
           <span className="text-xl font-normal text-slate-300 sm:text-2xl">
-            Junior Full Stack Developer
+            {!reduced && typed ? <span className="typewriter">{typed}</span> : 'Junior Full Stack Developer'}
           </span>
         </motion.h1>
 
@@ -47,22 +82,18 @@ export default function Hero() {
           transition={{ duration: 0.6, delay: 0.15 }}
         >
           <button
+            ref={ctaRef}
             type="button"
-            onClick={() => {
-              const el = document.getElementById('projects');
-              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }}
-            className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-sky-500/30 transition hover:bg-sky-400"
+            onClick={() => handleScrollInto('projects')}
+            className="magnetic inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-sky-500/30 transition focus:outline-none"
           >
             View Projects
           </button>
           <button
+            ref={ctaRef}
             type="button"
-            onClick={() => {
-              const el = document.getElementById('contact');
-              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }}
-            className="inline-flex items-center justify-center rounded-full border border-slate-600 bg-slate-900 px-6 py-2.5 text-sm font-semibold text-slate-100 transition hover:border-primary hover:text-primary"
+            onClick={() => handleScrollInto('contact')}
+            className="magnetic inline-flex items-center justify-center rounded-full border border-slate-600 bg-slate-900 px-6 py-2.5 text-sm font-semibold text-slate-100 transition focus:outline-none"
           >
             Contact Me
           </button>
@@ -86,6 +117,7 @@ export default function Hero() {
 
       <motion.div
         className="relative mt-4 flex flex-1 justify-center md:mt-0"
+        style={shapeStyle}
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, delay: 0.15 }}
@@ -100,8 +132,17 @@ export default function Hero() {
             <p className="text-xs text-slate-400">Junior Full Stack Developer</p>
           </div>
         </div>
-        <div className="pointer-events-none absolute -right-8 -top-6 h-24 w-24 rounded-3xl border border-sky-500/30 bg-sky-500/10 blur-2xl" />
-        <div className="pointer-events-none absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-purple-500/10 blur-3xl" />
+        {/* floating decorative shapes */}
+        <motion.div
+          className="pointer-events-none absolute -right-8 -top-6 h-24 w-24 rounded-3xl border border-sky-500/30 bg-sky-500/10 blur-2xl"
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 24, ease: 'linear' }}
+        />
+        <motion.div
+          className="pointer-events-none absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-purple-500/10 blur-3xl"
+          animate={{ rotate: -360 }}
+          transition={{ repeat: Infinity, duration: 32, ease: 'linear' }}
+        />
       </motion.div>
     </div>
   );

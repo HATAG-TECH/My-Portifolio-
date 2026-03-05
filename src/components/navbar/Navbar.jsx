@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useTheme } from '../../hooks/useTheme.js';
+import useScrollProgress from '../../hooks/useScrollProgress.js';
+import useActiveSection from '../../hooks/useActiveSection.js';
 
 const navLinks = [
   { id: 'home', label: 'Home' },
@@ -20,6 +22,9 @@ function scrollToSection(id) {
 export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const [open, setOpen] = useState(false);
+  const progress = useScrollProgress();
+  const active = useActiveSection(navLinks.map((l) => l.id));
+  const barRef = useRef(null);
 
   const handleNavClick = (id) => {
     scrollToSection(id);
@@ -27,7 +32,14 @@ export default function Navbar() {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 border-b border-slate-200/70 bg-white/70 backdrop-blur-xl transition-colors duration-500 dark:border-slate-800/60 dark:bg-slate-900/75">
+    <header className="fixed inset-x-0 top-0 z-40">
+      {/* scroll progress bar */}
+      <div
+        ref={barRef}
+        className="h-1 w-0 bg-primary origin-left transition-width duration-75"
+        style={{ width: `${progress * 100}%` }}
+      />
+      <div className="border-b border-slate-200/70 bg-white/70 backdrop-blur-xl transition-colors duration-500 dark:border-slate-800/60 dark:bg-slate-900/75">
       <nav className="section-container flex h-16 items-center justify-between">
         <div
           className="flex items-center gap-2 cursor-pointer"
