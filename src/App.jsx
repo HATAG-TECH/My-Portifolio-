@@ -12,9 +12,12 @@ import { motion } from 'framer-motion';
 
 function HomePage() {
   return (
-    <div className="bg-dark text-slate-100 transition-colors duration-300 dark:bg-dark">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-light to-slate-100 text-slate-900 transition-colors duration-500 dark:bg-gradient-to-b dark:from-slate-950 dark:via-dark dark:to-slate-950 dark:text-slate-100">
+      <div className="pointer-events-none absolute -left-32 top-10 h-64 w-64 rounded-full bg-primary/20 blur-3xl dark:bg-primary/30" />
+      <div className="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-secondary/15 blur-3xl dark:bg-secondary/25" />
+
       <Navbar />
-      <main className="pt-20 space-y-0">
+      <main className="relative pt-20 space-y-0">
         <section id="home" className="section-padding">
           <div className="section-container">
             <Hero />
