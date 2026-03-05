@@ -20,19 +20,26 @@ function validate(form) {
     errors.email = 'Please enter a valid email address.';
   }
   if (!form.message.trim()) errors.message = 'Message is required.';
+  if (!form.consent) errors.consent = 'Please provide GDPR consent before sending.';
   return errors;
 }
 
 export default function ContactForm() {
-  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    message: '',
+    consent: false,
+    website: '',
+  });
   const [status, setStatus] = useState({ loading: false, success: '', error: '' });
   const [errors, setErrors] = useState({});
   const [showConfetti, setShowConfetti] = useState(false);
   const reducedMotion = useReducedMotion();
 
   const handleChange = (event) => {
-    const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = event.target;
+    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
@@ -58,7 +65,7 @@ export default function ContactForm() {
         success: 'Thanks for reaching out! I will get back to you soon.',
         error: '',
       });
-      setForm({ name: '', email: '', message: '' });
+      setForm({ name: '', email: '', message: '', consent: false, website: '' });
       setShowConfetti(true);
       window.setTimeout(() => setShowConfetti(false), 1300);
     } catch {
@@ -132,6 +139,29 @@ export default function ContactForm() {
           onBlur={handleBlur}
           required
           error={errors.message}
+        />
+
+        <label className="flex items-start gap-2 text-xs theme-text-muted">
+          <input
+            type="checkbox"
+            name="consent"
+            checked={form.consent}
+            onChange={handleChange}
+            className="mt-0.5"
+          />
+          <span>I consent to data processing for this contact request (GDPR).</span>
+        </label>
+        {errors.consent && <p className="text-xs text-rose-300">{errors.consent}</p>}
+
+        <input
+          type="text"
+          name="website"
+          value={form.website}
+          onChange={handleChange}
+          tabIndex={-1}
+          autoComplete="off"
+          className="hidden"
+          aria-hidden="true"
         />
 
         <MagneticButton
