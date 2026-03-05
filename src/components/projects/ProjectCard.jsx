@@ -34,12 +34,12 @@ export default function ProjectCard({ project, onOpen }) {
     >
       <div>
         <motion.div
-          className="mb-4 overflow-hidden rounded-xl border border-slate-700/60 bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-900"
+          className="theme-surface mb-4 overflow-hidden rounded-xl"
           whileHover={reducedMotion ? undefined : { rotate: -1.4 }}
           transition={{ duration: 0.35 }}
         >
           <motion.div
-            className="flex h-28 items-center justify-center text-xl font-semibold tracking-wide text-slate-200"
+            className="theme-text-muted flex h-28 items-center justify-center text-xl font-semibold tracking-wide"
             whileHover={reducedMotion ? undefined : { scale: 1.08, rotate: 1.1 }}
             transition={{ duration: 0.35 }}
           >
@@ -47,14 +47,14 @@ export default function ProjectCard({ project, onOpen }) {
           </motion.div>
         </motion.div>
 
-        <h3 className="font-heading text-base font-semibold text-slate-50 sm:text-lg">{title}</h3>
-        <p className="mt-2 text-xs leading-relaxed text-slate-300 sm:text-sm">{description}</p>
+        <h3 className="theme-text-primary font-heading text-base font-semibold sm:text-lg">{title}</h3>
+        <p className="theme-text-muted mt-2 text-xs leading-relaxed sm:text-sm">{description}</p>
 
         <div className="mt-3 flex flex-wrap gap-1.5">
           {techStack.map((tech) => (
             <span
               key={tech}
-              className="rounded-full bg-slate-900/80 px-2.5 py-1 text-[10px] font-medium text-slate-200"
+              className="theme-chip rounded-full px-2.5 py-1 text-[10px] font-medium"
             >
               {tech}
             </span>
@@ -67,7 +67,7 @@ export default function ProjectCard({ project, onOpen }) {
           href={github}
           target="_blank"
           rel="noreferrer"
-          className="interactive inline-flex flex-1 items-center justify-center rounded-full border border-slate-700 bg-slate-900/90 px-3 py-1.5 text-slate-100 transition hover:border-primary hover:text-primary"
+          className="theme-button-secondary interactive inline-flex flex-1 items-center justify-center rounded-full px-3 py-1.5 transition"
           onClick={(event) => event.stopPropagation()}
         >
           View GitHub
@@ -76,7 +76,7 @@ export default function ProjectCard({ project, onOpen }) {
           href={demo || '#'}
           target="_blank"
           rel="noreferrer"
-          className="interactive inline-flex flex-1 items-center justify-center rounded-full bg-primary/90 px-3 py-1.5 text-slate-950 transition hover:bg-primary"
+          className="theme-button-primary interactive inline-flex flex-1 items-center justify-center rounded-full px-3 py-1.5 transition"
           onClick={(event) => event.stopPropagation()}
         >
           Live Demo

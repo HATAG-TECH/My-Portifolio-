@@ -73,16 +73,16 @@ export default function ContactForm() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-heading text-2xl font-semibold text-slate-50 sm:text-3xl">
-          Let&apos;s <span className="text-primary">Connect</span>
+        <h2 className="theme-text-primary font-heading text-2xl font-semibold sm:text-3xl">
+          Let&apos;s <span className="theme-text-accent">Connect</span>
         </h2>
-        <p className="mt-2 max-w-xl text-sm text-slate-300">
+        <p className="theme-text-muted mt-2 max-w-xl text-sm">
           Whether you have a project in mind, feedback on my work, or just want to say hi, feel
           free to send a message.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="glass-panel relative max-w-xl space-y-4 rounded-2xl p-5">
+      <form onSubmit={handleSubmit} className="theme-surface relative max-w-xl space-y-4 rounded-2xl p-5">
         {showConfetti && !reducedMotion && (
           <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
             {confettiPieces.map((piece) => (
@@ -137,7 +137,7 @@ export default function ContactForm() {
         <MagneticButton
           type="submit"
           disabled={status.loading}
-          className="interactive inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-sky-500/30 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-70"
+          className="theme-button-primary interactive inline-flex items-center justify-center rounded-full px-6 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-70"
         >
           {status.loading ? 'Sending...' : 'Send Message'}
         </MagneticButton>

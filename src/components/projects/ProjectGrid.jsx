@@ -41,10 +41,10 @@ export default function ProjectGrid() {
     <div className="space-y-8">
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <h2 className="font-heading text-2xl font-semibold text-slate-50 sm:text-3xl">
-            Featured <span className="text-primary">Projects</span>
+          <h2 className="theme-text-primary font-heading text-2xl font-semibold sm:text-3xl">
+            Featured <span className="theme-text-accent">Projects</span>
           </h2>
-          <p className="mt-2 max-w-xl text-sm text-slate-300">
+          <p className="theme-text-muted mt-2 max-w-xl text-sm">
             Real projects that show my progress as a developer, from data structures and desktop
             apps to full stack web applications.
           </p>
@@ -58,8 +58,8 @@ export default function ProjectGrid() {
               onClick={() => setSelectedCategory(category)}
               className={`interactive rounded-full px-3 py-1 text-xs font-medium transition ${
                 selectedCategory === category
-                  ? 'bg-primary text-slate-950'
-                  : 'bg-slate-900/80 text-slate-200 hover:bg-slate-800'
+                  ? 'theme-chip-active'
+                  : 'theme-chip'
               }`}
             >
               {category}
