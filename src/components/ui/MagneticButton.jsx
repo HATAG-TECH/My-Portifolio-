@@ -7,6 +7,7 @@ export default function MagneticButton({
   className = '',
   type = 'button',
   onClick,
+  ...props
 }) {
   const reducedMotion = useReducedMotion();
   const { position, onMouseMove, onMouseLeave } = useMagnetic(22);
@@ -34,6 +35,7 @@ export default function MagneticButton({
       }
       transition={{ type: 'spring', stiffness: 280, damping: 18, mass: 0.2 }}
       className={`relative overflow-hidden will-change-transform ${className}`}
+      {...props}
     >
       <motion.span
         aria-hidden="true"
