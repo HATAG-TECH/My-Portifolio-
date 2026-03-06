@@ -6,37 +6,12 @@ import ChatMessage from './ChatMessage.jsx';
 import ChatInput from './ChatInput.jsx';
 import TypingIndicator from './TypingIndicator.jsx';
 
-const STORAGE_KEYS = {
-  history: 'portfolio-chat-history-v3',
-  open: 'portfolio-chat-open-v1',
-  unread: 'portfolio-chat-unread-v1',
-  welcomed: 'portfolio-chat-welcomed-v1',
-};
-
 const QUICK_ACTIONS = [
   { id: 'about', label: 'About Me', prompt: 'Tell me about Habtamu' },
   { id: 'projects', label: 'Projects', prompt: 'What projects has he built?' },
   { id: 'skills', label: 'Skills', prompt: 'What are his skills?' },
   { id: 'contact', label: 'Contact', prompt: 'How can I contact him?' },
 ];
-
-function readStorage(key, fallback) {
-  try {
-    const raw = window.localStorage.getItem(key);
-    if (raw == null) return fallback;
-    return JSON.parse(raw);
-  } catch {
-    return fallback;
-  }
-}
-
-function writeStorage(key, value) {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // ignore
-  }
-}
 
 function normalize(value) {
   return value.toLowerCase().trim();
@@ -246,9 +221,9 @@ function generateSmartReply(input, context) {
 
 export default function ChatAssistant() {
   const { isDark } = useTheme();
-  const [isOpen, setIsOpen] = useState(() => readStorage(STORAGE_KEYS.open, false));
-  const [unreadCount, setUnreadCount] = useState(() => readStorage(STORAGE_KEYS.unread, 0));
-  const [messages, setMessages] = useState(() => readStorage(STORAGE_KEYS.history, []));
+  const [isOpen, setIsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [helperText, setHelperText] = useState('');
@@ -257,18 +232,6 @@ export default function ChatAssistant() {
   const replyTimeoutRef = useRef(null);
 
   const showQuickActions = !draft.trim();
-
-  useEffect(() => {
-    writeStorage(STORAGE_KEYS.history, messages);
-  }, [messages]);
-
-  useEffect(() => {
-    writeStorage(STORAGE_KEYS.open, isOpen);
-  }, [isOpen]);
-
-  useEffect(() => {
-    writeStorage(STORAGE_KEYS.unread, unreadCount);
-  }, [unreadCount]);
 
   useEffect(() => {
     if (!scrollRef.current) return;
@@ -281,14 +244,52 @@ export default function ChatAssistant() {
     }
   }, []);
 
+  const resetConversation = () => {
+    if (replyTimeoutRef.current) {
+      window.clearTimeout(replyTimeoutRef.current);
+      replyTimeoutRef.current = null;
+    }
+    setMessages([]);
+    setDraft('');
+    setIsTyping(false);
+    setHelperText('');
+    contextRef.current = { lastIntent: null, lastProjectId: null };
+  };
+
+  const openChat = () => {
+    setIsOpen(true);
+    setUnreadCount(0);
+    setMessages([createWelcomeMessage()]);
+    contextRef.current = { lastIntent: null, lastProjectId: null };
+  };
+
+  const closeChat = () => {
+    setIsOpen(false);
+    setUnreadCount(0);
+    resetConversation();
+  };
+
+  const handleToggle = () => {
+    if (isOpen) {
+      closeChat();
+      return;
+    }
+    openChat();
+  };
+
+  const stopGenerating = () => {
+    if (replyTimeoutRef.current) {
+      window.clearTimeout(replyTimeoutRef.current);
+      replyTimeoutRef.current = null;
+    }
+    setIsTyping(false);
+    setHelperText('Response stopped.');
+  };
+
   useEffect(() => {
     if (!isOpen) return;
-    setUnreadCount(0);
-
-    const hasWelcomed = readStorage(STORAGE_KEYS.welcomed, false);
-    if (!hasWelcomed && messages.length === 0) {
+    if (!messages.length) {
       setMessages([createWelcomeMessage()]);
-      writeStorage(STORAGE_KEYS.welcomed, true);
     }
   }, [isOpen, messages.length]);
 
@@ -311,6 +312,7 @@ export default function ChatAssistant() {
     const delay = 1000 + Math.floor(Math.random() * 1000);
 
     replyTimeoutRef.current = window.setTimeout(() => {
+      replyTimeoutRef.current = null;
       try {
         const reply = generateSmartReply(trimmed, contextRef.current);
         contextRef.current = {
@@ -355,15 +357,41 @@ export default function ChatAssistant() {
   };
 
   const windowClass = isDark
-    ? 'border-white/15 bg-slate-900/70 text-slate-100'
-    : 'border-slate-200 bg-white/90 text-slate-800';
+    ? 'text-white'
+    : 'text-slate-900';
+
+  const themeTokens = isDark
+    ? {
+        chatBg: 'rgba(10, 25, 41, 0.95)',
+        chatBorder: 'rgba(59, 130, 246, 0.3)',
+        userMessage: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+        aiMessage: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+        textPrimary: '#ffffff',
+        textSecondary: '#cbd5e1',
+        inputBg: '#1e293b',
+        inputBorder: '#334155',
+        quickActionBg: '#1e293b',
+        quickActionHover: '#334155',
+      }
+    : {
+        chatBg: 'rgba(255, 255, 255, 0.95)',
+        chatBorder: 'rgba(59, 130, 246, 0.2)',
+        userMessage: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+        aiMessage: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+        textPrimary: '#0f172a',
+        textSecondary: '#334155',
+        inputBg: '#f8fafc',
+        inputBorder: '#e2e8f0',
+        quickActionBg: '#f1f5f9',
+        quickActionHover: '#e2e8f0',
+      };
 
   return (
     <>
       <div className="fixed bottom-5 right-5 z-40">
         <button
           type="button"
-          onClick={() => setIsOpen((prev) => !prev)}
+          onClick={handleToggle}
           className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-tr from-blue-500 to-purple-600 text-xl text-white shadow-lg shadow-blue-500/40 transition hover:scale-105"
           aria-label={isOpen ? 'Close assistant' : 'Open assistant'}
         >
@@ -389,20 +417,22 @@ export default function ChatAssistant() {
             exit={{ opacity: 0, y: 20, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 220, damping: 22 }}
             className={`fixed z-40 border shadow-2xl backdrop-blur-xl ${windowClass} bottom-20 right-4 left-4 rounded-2xl sm:left-auto sm:w-[380px]`}
+            style={{ background: themeTokens.chatBg, borderColor: themeTokens.chatBorder }}
             role="dialog"
             aria-label="Portfolio AI assistant"
           >
-            <header className={`flex items-center justify-between border-b px-3 py-2 ${isDark ? 'border-white/10' : 'border-slate-200/80'}`}>
+            <header className="flex items-center justify-between border-b px-3 py-2" style={{ borderBottomColor: themeTokens.chatBorder }}>
               <div>
-                <h2 className="font-heading text-sm font-semibold">AI Assistant</h2>
-                <p className={`text-[11px] ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>
+                <h2 className="font-heading text-sm font-semibold" style={{ color: themeTokens.textPrimary }}>AI Assistant</h2>
+                <p className="text-[11px]" style={{ color: themeTokens.textSecondary }}>
                   Ask about Habtamu's projects, skills, and contact details
                 </p>
               </div>
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
-                className={`rounded-md px-2 py-1 text-xs ${isDark ? 'bg-slate-800/80 hover:bg-slate-700' : 'bg-slate-100 hover:bg-slate-200'}`}
+                onClick={closeChat}
+                className="rounded-md px-2 py-1 text-xs"
+                style={{ background: themeTokens.quickActionBg, color: themeTokens.textPrimary }}
                 aria-label="Close chat"
               >
                 Close
@@ -414,9 +444,9 @@ export default function ChatAssistant() {
               className="max-h-[52vh] space-y-2 overflow-y-auto px-3 py-3 sm:max-h-[420px]"
             >
               {messages.map((message) => (
-                <ChatMessage key={message.id} message={message} isDark={isDark} />
+                <ChatMessage key={message.id} message={message} isDark={isDark} themeTokens={themeTokens} />
               ))}
-              {isTyping && <TypingIndicator />}
+              {isTyping && <TypingIndicator onStop={stopGenerating} themeTokens={themeTokens} />}
             </div>
 
             {helperText && (
@@ -431,6 +461,9 @@ export default function ChatAssistant() {
               showQuickActions={showQuickActions}
               onQuickAction={handleQuickAction}
               isDark={isDark}
+              isGenerating={isTyping}
+              onStopGenerating={stopGenerating}
+              themeTokens={themeTokens}
             />
           </motion.section>
         )}

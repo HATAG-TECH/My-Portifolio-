@@ -31,14 +31,14 @@ function formatTimestamp(ts) {
   }
 }
 
-function ChatMessage({ message, isDark }) {
+function ChatMessage({ message, isDark, themeTokens }) {
   const isUser = message.role === 'user';
   const contentParts = useMemo(() => parseContent(message.content), [message.content]);
   const bubbleClass = isUser
-    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
+    ? 'text-white'
     : isDark
-      ? 'border border-white/15 bg-gradient-to-r from-purple-600/80 to-indigo-600/80 text-slate-50'
-      : 'border border-purple-200/80 bg-white/90 text-slate-800';
+      ? 'border text-slate-50'
+      : 'border text-slate-800';
 
   return (
     <motion.div
@@ -48,7 +48,17 @@ function ChatMessage({ message, isDark }) {
       transition={{ duration: 0.2 }}
       className={`group flex ${isUser ? 'justify-end' : 'justify-start'}`}
     >
-      <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-xs leading-relaxed shadow-md ${bubbleClass}`}>
+      <div
+        className={`max-w-[85%] rounded-2xl px-3 py-2 text-xs leading-relaxed shadow-md ${bubbleClass}`}
+        style={
+          isUser
+            ? { background: themeTokens.userMessage }
+            : {
+                background: themeTokens.aiMessage,
+                borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(139,92,246,0.25)',
+              }
+        }
+      >
         {contentParts.map((part, index) =>
           part.type === 'code' ? (
             <div key={`${message.id}-code-${index}`} className="my-2 overflow-hidden rounded-lg border border-white/15 bg-slate-950/85">
@@ -74,4 +84,3 @@ function ChatMessage({ message, isDark }) {
 }
 
 export default memo(ChatMessage);
-

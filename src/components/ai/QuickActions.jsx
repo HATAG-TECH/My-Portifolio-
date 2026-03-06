@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
 
-function QuickActions({ actions, visible, onSelect, isDark }) {
+function QuickActions({ actions, visible, onSelect, isDark, themeTokens }) {
   if (!visible) return null;
 
   return (
@@ -17,10 +17,18 @@ function QuickActions({ actions, visible, onSelect, isDark }) {
           type="button"
           onClick={() => onSelect(action.prompt)}
           className={`rounded-full border px-3 py-1 text-[11px] transition hover:scale-[1.02] ${
-            isDark
-              ? 'border-white/20 bg-white/5 text-slate-100 hover:bg-white/10'
-              : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+            isDark ? 'text-slate-100' : 'text-slate-700'
           }`}
+          style={{
+            borderColor: themeTokens.inputBorder,
+            background: themeTokens.quickActionBg,
+          }}
+          onMouseEnter={(event) => {
+            event.currentTarget.style.background = themeTokens.quickActionHover;
+          }}
+          onMouseLeave={(event) => {
+            event.currentTarget.style.background = themeTokens.quickActionBg;
+          }}
         >
           {action.label}
         </button>
@@ -30,4 +38,3 @@ function QuickActions({ actions, visible, onSelect, isDark }) {
 }
 
 export default memo(QuickActions);
-

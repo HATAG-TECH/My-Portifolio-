@@ -10,6 +10,9 @@ function ChatInput({
   showQuickActions,
   onQuickAction,
   isDark,
+  isGenerating,
+  onStopGenerating,
+  themeTokens,
 }) {
   const textareaRef = useRef(null);
 
@@ -32,12 +35,13 @@ function ChatInput({
   };
 
   return (
-    <div className={`border-t px-3 py-2 ${isDark ? 'border-white/10' : 'border-slate-200/80'}`}>
+    <div className="border-t px-3 py-2" style={{ borderTopColor: themeTokens.chatBorder }}>
       <QuickActions
         actions={quickActions}
         visible={showQuickActions}
         onSelect={onQuickAction}
         isDark={isDark}
+        themeTokens={themeTokens}
       />
       <form onSubmit={handleSubmit} className="mt-2 flex items-end gap-2">
         <textarea
@@ -48,25 +52,38 @@ function ChatInput({
           onKeyDown={handleKeyDown}
           placeholder="Ask about Habtamu's projects, skills, or contact..."
           aria-label="Chat input"
-          className={`max-h-28 min-h-[40px] flex-1 resize-none rounded-xl border px-3 py-2 text-xs outline-none transition ${
-            isDark
-              ? 'border-white/15 bg-slate-950/50 text-slate-100 placeholder:text-slate-400 focus:border-blue-400 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.35)]'
-              : 'border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.2)]'
-          }`}
+          className="max-h-28 min-h-[40px] flex-1 resize-none rounded-xl border px-3 py-2 text-xs outline-none transition focus:border-blue-500 focus:shadow-[0_0_0_2px_rgba(59,130,246,0.25)]"
+          style={{
+            borderColor: themeTokens.inputBorder,
+            background: themeTokens.inputBg,
+            color: themeTokens.textPrimary,
+          }}
         />
         <motion.button
           type="submit"
-          disabled={!value.trim()}
+          disabled={!value.trim() || isGenerating}
           animate={!value.trim() ? {} : { scale: [1, 1.04, 1] }}
           transition={{ duration: 1.1, repeat: Infinity }}
           className="rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-2 text-xs font-semibold text-white shadow-lg disabled:opacity-55"
         >
           Send
         </motion.button>
+        {isGenerating && (
+          <motion.button
+            type="button"
+            onClick={onStopGenerating}
+            animate={{ scale: [1, 1.06, 1] }}
+            transition={{ duration: 0.8, repeat: Infinity }}
+            className="inline-flex items-center gap-1 rounded-xl border border-red-400/40 bg-red-500/90 px-3 py-2 text-xs font-semibold text-white shadow-lg"
+            aria-label="Stop generating"
+          >
+            <span className="h-2.5 w-2.5 rounded-sm bg-white" />
+            Stop
+          </motion.button>
+        )}
       </form>
     </div>
   );
 }
 
 export default memo(ChatInput);
-
