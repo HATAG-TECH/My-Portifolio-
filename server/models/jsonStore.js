@@ -1,142 +1,127 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { randomUUID } from 'node:crypto';
+import fs from 'fs/promises';
+import path from 'path';
 import { env } from '../config/env.js';
-import { projectSchema } from './schemas.js';
-import { projects as seedProjects } from '../../src/data/projectsData.js';
+import { projects as projectCatalog } from '../../src/data/projectsData.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const rootDir = path.resolve(__dirname, '..', '..');
-const dataDir = path.resolve(rootDir, env.dataDir);
-const backupDir = path.resolve(rootDir, env.backupDir);
+class JSONStore {
+  constructor() {
+    this.dataDir = env.dataDir;
+    this.contactsFile = path.join(this.dataDir, 'contacts.json');
+    this.chatsFile = path.join(this.dataDir, 'chats.json');
+    this.visitorsFile = path.join(this.dataDir, 'visitors.json');
+    this.initialized = false;
+  }
 
-const files = {
-  projects: path.join(dataDir, 'projects.json'),
-  contacts: path.join(dataDir, 'contacts.json'),
-  visitors: path.join(dataDir, 'visitors.json'),
-  chats: path.join(dataDir, 'chats.json'),
-};
+  async initialize() {
+    try {
+      await fs.mkdir(this.dataDir, { recursive: true });
+      await this.ensureFile(this.contactsFile, []);
+      await this.ensureFile(this.chatsFile, []);
+      await this.ensureFile(this.visitorsFile, { totalVisits: 0, visitors: {} });
+      this.initialized = true;
+      console.log('JSON store initialized');
+    } catch (error) {
+      console.error('Failed to initialize JSON store:', error);
+      throw error;
+    }
+  }
 
-async function ensureDir(dirPath) {
-  await fs.mkdir(dirPath, { recursive: true });
-}
+  async ensureFile(filePath, fallbackValue) {
+    try {
+      await fs.access(filePath);
+    } catch {
+      await fs.writeFile(filePath, JSON.stringify(fallbackValue, null, 2));
+    }
+  }
 
-async function ensureFile(filePath, defaultValue) {
-  try {
-    await fs.access(filePath);
-  } catch {
-    await fs.writeFile(filePath, JSON.stringify(defaultValue, null, 2), 'utf8');
+  async readJson(filePath, fallbackValue) {
+    if (!this.initialized) await this.initialize();
+    try {
+      const raw = await fs.readFile(filePath, 'utf-8');
+      if (!raw.trim()) return fallbackValue;
+      return JSON.parse(raw);
+    } catch {
+      return fallbackValue;
+    }
+  }
+
+  async writeJson(filePath, value) {
+    if (!this.initialized) await this.initialize();
+    await fs.writeFile(filePath, JSON.stringify(value, null, 2));
+  }
+
+  async readContacts() {
+    return this.readJson(this.contactsFile, []);
+  }
+
+  async writeContacts(contacts) {
+    await this.writeJson(this.contactsFile, contacts);
+  }
+
+  async addContact(contact) {
+    const contacts = await this.readContacts();
+    contacts.push(contact);
+    await this.writeContacts(contacts);
+    return contact;
+  }
+
+  async getContacts(limit = 50) {
+    const contacts = await this.readContacts();
+    return contacts.slice(-limit).reverse();
+  }
+
+  async appendChat(record) {
+    const chats = await this.readJson(this.chatsFile, []);
+    chats.push(record);
+    await this.writeJson(this.chatsFile, chats.slice(-500));
+    return record;
+  }
+
+  async updateVisitor(ipAddress) {
+    const safeIp = ipAddress || 'unknown';
+    const now = new Date().toISOString();
+    const state = await this.readJson(this.visitorsFile, { totalVisits: 0, visitors: {} });
+
+    state.totalVisits = Number(state.totalVisits || 0) + 1;
+    state.visitors = state.visitors || {};
+    const existing = state.visitors[safeIp];
+
+    state.visitors[safeIp] = {
+      visits: Number(existing?.visits || 0) + 1,
+      firstSeenAt: existing?.firstSeenAt || now,
+      lastSeenAt: now,
+    };
+
+    await this.writeJson(this.visitorsFile, state);
+
+    return {
+      totalVisits: state.totalVisits,
+      uniqueVisitors: Object.keys(state.visitors).length,
+      currentVisitor: state.visitors[safeIp],
+      updatedAt: now,
+    };
   }
 }
 
-async function backupFile(filePath) {
-  const stamp = new Date().toISOString().slice(0, 10);
-  const baseName = path.basename(filePath, '.json');
-  const backupPath = path.join(backupDir, `${baseName}-${stamp}.json`);
-  const raw = await fs.readFile(filePath, 'utf8');
-  await fs.writeFile(backupPath, raw, 'utf8');
-}
-
-async function readJson(filePath, fallback = []) {
-  const raw = await fs.readFile(filePath, 'utf8');
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return fallback;
-  }
-}
-
-async function writeJson(filePath, value) {
-  await fs.writeFile(filePath, JSON.stringify(value, null, 2), 'utf8');
-  await backupFile(filePath);
-}
-
-function validateProjects(projects) {
-  return projects.map((project) => projectSchema.validate(project, { stripUnknown: true }).value);
-}
-
-export async function initializeStore() {
-  await ensureDir(dataDir);
-  await ensureDir(backupDir);
-  await ensureFile(files.projects, seedProjects);
-  await ensureFile(files.contacts, []);
-  await ensureFile(files.chats, []);
-  await ensureFile(files.visitors, {
-    totalVisits: 0,
-    uniqueVisitors: 0,
-    byDay: {},
-    seenIps: [],
-    lastVisitAt: null,
-  });
-
-  const loadedProjects = await readJson(files.projects, []);
-  const validatedProjects = validateProjects(loadedProjects);
-  if (validatedProjects.length !== loadedProjects.length) {
-    await writeJson(files.projects, validatedProjects);
-  }
-}
+export const store = new JSONStore();
+export const initializeStore = () => store.initialize();
 
 export async function getProjects() {
-  const loadedProjects = await readJson(files.projects, []);
-  return validateProjects(loadedProjects);
+  return projectCatalog;
 }
 
-export async function getProjectById(id) {
-  const list = await getProjects();
-  return list.find((project) => project.id === id) || null;
+export async function getProjectById(projectId) {
+  return projectCatalog.find((item) => item.id === projectId) || null;
 }
 
-export async function saveContact(contact) {
-  const current = await readJson(files.contacts, []);
-  const entry = {
-    id: randomUUID(),
-    ...contact,
-    createdAt: new Date().toISOString(),
-  };
-  current.push(entry);
-  await writeJson(files.contacts, current);
-  return entry;
-}
-
-export async function saveChatRecord(chatRecord) {
-  const current = await readJson(files.chats, []);
-  current.push({
-    id: randomUUID(),
-    ...chatRecord,
+export async function saveChatRecord(record) {
+  return store.appendChat({
+    ...record,
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     createdAt: new Date().toISOString(),
   });
-  if (current.length > 1000) {
-    current.splice(0, current.length - 1000);
-  }
-  await writeJson(files.chats, current);
 }
 
 export async function trackVisitor(ipAddress) {
-  const data = await readJson(files.visitors, {
-    totalVisits: 0,
-    uniqueVisitors: 0,
-    byDay: {},
-    seenIps: [],
-    lastVisitAt: null,
-  });
-
-  const dayKey = new Date().toISOString().slice(0, 10);
-  data.totalVisits += 1;
-  data.byDay[dayKey] = (data.byDay[dayKey] || 0) + 1;
-  data.lastVisitAt = new Date().toISOString();
-
-  if (ipAddress && !data.seenIps.includes(ipAddress)) {
-    data.seenIps.push(ipAddress);
-    data.uniqueVisitors += 1;
-  }
-
-  await writeJson(files.visitors, data);
-  return {
-    totalVisits: data.totalVisits,
-    uniqueVisitors: data.uniqueVisitors,
-    todayVisits: data.byDay[dayKey],
-    lastVisitAt: data.lastVisitAt,
-  };
+  return store.updateVisitor(ipAddress);
 }
