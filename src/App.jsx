@@ -14,7 +14,7 @@ const ProjectGrid = lazy(() => import('./components/projects/ProjectGrid.jsx'));
 const Skills = lazy(() => import('./components/skills/Skills.jsx'));
 const Timeline = lazy(() => import('./components/experience/Timeline.jsx'));
 const ContactForm = lazy(() => import('./components/contact/ContactForm.jsx'));
-const ChatBot = lazy(() => import('./components/ai/ChatBot.jsx'));
+const ChatAssistant = lazy(() => import('./components/ai/ChatAssistant.jsx'));
 
 function SectionSkeleton() {
   return (
@@ -103,7 +103,7 @@ function HomePage() {
 
       <ChatErrorBoundary>
         <Suspense fallback={null}>
-          <ChatBot />
+          <ChatAssistant />
         </Suspense>
       </ChatErrorBoundary>
       <Footer />
