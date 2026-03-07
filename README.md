@@ -1,16 +1,201 @@
-# React + Vite
+# My Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, full-stack developer portfolio by **Habtamu Shewamene** that showcases projects, skills, and experience with an interactive AI assistant and production-style backend APIs.
 
-Currently, two official plugins are available:
+## Developer
+- **Name:** Habtamu Shewamene
+- **GitHub:** https://github.com/HATAG-TECH
+- **LinkedIn:** https://www.linkedin.com/in/habtamu-shewamene-25a5a63b5/
+- **Email:** habtamushewamene905@gmail.com
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Project Description
+This project is a responsive full-stack portfolio website built with React + Vite on the frontend and Node.js + Express on the backend. It highlights technical projects, professional experience, and skills, and includes a context-aware AI chat assistant plus a contact workflow with email notification support.
 
-## React Compiler
+## Key Features
+- Responsive layout (mobile, tablet, desktop)
+- Dark/Light theme system
+- AI chat assistant with conversation memory and project context
+- Project showcase with filtering and detail modals
+- Skills and experience timeline sections
+- Contact form with backend validation and email delivery pipeline
+- Rate-limited public APIs for security
+- GitHub stats integration for repositories
+- Framer Motion-powered transitions and interactions
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the ESLint configuration
+### Frontend
+- React (Vite)
+- TailwindCSS
+- Framer Motion
+- React Router
+- Axios / Fetch-based API service layer
+- Context API (theme + chat state)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Backend
+- Node.js
+- Express
+- RESTful API architecture
+- Nodemailer
+- Express Rate Limit
+- JSON file persistence (contacts, chats, visitors)
+
+## Project Structure
+```text
+my-portfolio/
+  public/
+    profile-photo.jpg
+  src/
+    components/
+      about/
+      ai/
+      contact/
+      experience/
+      footer/
+      hero/
+      navbar/
+      projects/
+      skills/
+      ui/
+    context/
+    data/
+    hooks/
+    services/
+    theme/
+    App.jsx
+    main.jsx
+  server/
+    config/
+    controllers/
+    data/
+    middleware/
+    models/
+    routes/
+    services/
+    app.js
+    server.js
+  package.json
+  vite.config.js
+  tailwind.config.js
+```
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18+ (recommended)
+- npm 9+
+
+### 1) Clone the repository
+```bash
+git clone https://github.com/HATAG-TECH/my-portfolio.git
+cd my-portfolio
+```
+
+### 2) Install dependencies
+```bash
+npm install
+```
+
+### 3) Configure environment variables
+Create a `.env` file in the project root (or `server/.env`):
+
+```env
+# Server
+PORT=5000
+NODE_ENV=development
+CLIENT_ORIGIN=http://localhost:5173
+TRUST_PROXY=false
+
+# Email (required for real email delivery)
+CONTACT_EMAIL_USER=your_email@example.com
+CONTACT_EMAIL_PASS=your_email_app_password
+CONTACT_EMAIL_TO=your_destination_email@example.com
+
+# Optional rate limits
+CONTACT_RATE_LIMIT_MAX=5
+CONTACT_RATE_LIMIT_WINDOW_MS=3600000
+CHAT_RATE_LIMIT_MAX=40
+CHAT_RATE_LIMIT_WINDOW_MS=900000
+
+# Optional stats defaults
+GITHUB_USERNAME=HATAG-TECH
+GITHUB_REPO=my-portfolio
+LINKEDIN_FOLLOWERS=500
+
+# Optional data directories
+DATA_DIR=data
+BACKUP_DIR=backups
+```
+
+Optional frontend env:
+
+```env
+VITE_API_BASE_URL=/api
+```
+
+### 4) Run the app
+Run frontend + backend together:
+```bash
+npm run dev:full
+```
+
+Or run separately:
+
+Frontend:
+```bash
+npm run dev
+```
+
+Backend:
+```bash
+npm run server
+```
+
+### 5) Open in browser
+- Frontend: `http://localhost:5173`
+- Backend health: `http://localhost:5000/api/health`
+
+## Available Scripts
+- `npm run dev` - Start Vite dev server
+- `npm run build` - Production build
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run server` - Start Express backend (`server/server.js`)
+- `npm run dev:full` - Run frontend + backend concurrently
+
+## API Overview
+Base URL: `/api`
+
+- `GET /health` - API health check
+- `GET /projects` - List projects (supports filter/sort/pagination)
+- `GET /projects/:id` - Get single project
+- `POST /contact` - Submit contact form (rate-limited)
+- `GET /contact/status` - Contact/email status diagnostics
+- `POST /chat` - AI assistant response endpoint (rate-limited)
+- `GET /stats` - Portfolio stats snapshot
+- `GET /visitor` - Track visitor and return visitor snapshot
+- `GET /test` - CORS validation endpoint
+
+## Security and Validation
+- Helmet-based secure HTTP headers
+- Configurable CORS allowlist
+- Per-route rate limiting for contact and chat APIs
+- Input sanitization middleware
+- Request payload validation for chat route
+- Centralized error handling middleware
+
+## Deployment Notes
+- Build frontend with `npm run build`
+- Serve `dist/` via static hosting (Netlify, Vercel, Nginx, etc.)
+- Deploy backend separately (Render, Railway, VPS, etc.)
+- Set `CLIENT_ORIGIN` in backend env to your deployed frontend URL
+- If behind a reverse proxy, set `TRUST_PROXY=true`
+
+## Contact
+For opportunities, collaboration, or feedback:
+- GitHub: https://github.com/HATAG-TECH
+- LinkedIn: https://www.linkedin.com/in/habtamu-shewamene-25a5a63b5/
+- Email: habtamushewamene905@gmail.com
+
+## License
+This project is intended for portfolio and educational use. Add your preferred license in `LICENSE` if you plan public reuse terms.
