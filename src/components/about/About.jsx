@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import ResumeDownloadButton from '../ui/ResumeDownloadButton.jsx';
 
 export default function About() {
   return (
@@ -17,6 +18,9 @@ export default function About() {
           I&apos;m especially interested in problem solving, backend systems, and how good UX and
           strong engineering come together to create modern digital experiences.
         </p>
+        <div className="mt-5">
+          <ResumeDownloadButton />
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

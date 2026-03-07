@@ -10,6 +10,7 @@ const QUICK_ACTIONS = [
   { id: 'about', label: 'About Me', prompt: 'Tell me about Habtamu' },
   { id: 'projects', label: 'Projects', prompt: 'What projects has he built?' },
   { id: 'skills', label: 'Skills', prompt: 'What are his skills?' },
+  { id: 'resume', label: 'Resume', prompt: 'Can I download your resume?' },
   { id: 'contact', label: 'Contact', prompt: 'How can I contact him?' },
 ];
 
@@ -150,6 +151,17 @@ function generateSmartReply(input, context) {
       content:
         `Email: ${chatData.profile.email}\n` +
         `Use the contact form on this page for opportunities and collaboration requests.`,
+    };
+  }
+
+  if (hasAny(text, ['resume', 'cv', 'curriculum vitae'])) {
+    return {
+      intent: 'resume',
+      lastProjectId: context.lastProjectId,
+      content:
+        `Absolutely. You can download Habtamu's resume below.\n` +
+        `If you add a PDF to /public/resume.pdf, this button will automatically download it.`,
+      action: 'resume_download',
     };
   }
 
@@ -326,6 +338,7 @@ export default function ChatAssistant() {
           content: reply.content,
           ts: Date.now(),
           intent: reply.intent,
+          action: reply.action || null,
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
