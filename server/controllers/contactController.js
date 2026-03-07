@@ -47,13 +47,19 @@ export const contactController = {
 
       await store.addContact(contactData);
 
-      // Send email
-      const emailResult = await emailService.sendContactEmail({ name, email, message });
+      // Try email delivery, but do not fail the request if SMTP delivery fails.
+      let emailResult = { success: false, devMode: false };
+      try {
+        emailResult = await emailService.sendContactEmail({ name, email, message });
+      } catch (emailError) {
+        console.error('⚠️ Email delivery failed, but contact was saved:', emailError.message);
+      }
 
       res.status(200).json({ 
         success: true, 
         message: 'Message sent successfully!',
-        devMode: emailResult.devMode || false
+        devMode: emailResult.devMode || false,
+        emailDelivered: Boolean(emailResult.success)
       });
       
     } catch (error) {

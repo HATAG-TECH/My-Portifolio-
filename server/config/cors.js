@@ -23,7 +23,7 @@ const allowedOrigins = new Set(
 );
 
 function isLocalDevOrigin(origin) {
-  return /^https?:\/\/(localhost|127\.0\.0\.1):(3000|5173)$/i.test(origin);
+  return /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(origin);
 }
 
 export const corsMiddleware = cors({
@@ -32,9 +32,19 @@ export const corsMiddleware = cors({
     if (!origin) return callback(null, true);
     const normalizedOrigin = normalizeOrigin(origin);
 
+    // Some browser/file contexts may send literal "null" origin.
+    if (env.nodeEnv !== 'production' && normalizedOrigin === 'null') {
+      return callback(null, true);
+    }
+
     if (allowedOrigins.has(normalizedOrigin)) return callback(null, true);
     if (env.nodeEnv !== 'production' && isLocalDevOrigin(normalizedOrigin)) {
       return callback(null, true);
+    }
+
+    if (env.nodeEnv !== 'production') {
+      console.warn(`[CORS] Blocked origin: ${normalizedOrigin}`);
+      console.warn(`[CORS] Allowed origins: ${Array.from(allowedOrigins).join(', ')}`);
     }
 
     return callback(new Error('CORS blocked for this origin'));
