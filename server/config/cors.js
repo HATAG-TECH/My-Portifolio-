@@ -10,11 +10,13 @@ const devOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:3000',
+  'http://[::1]:5173',
+  'http://[::1]:3000',
 ];
 
-const envOrigins = [...(env.clientOrigins || []), env.clientOrigin]
-  .map((origin) => normalizeOrigin(origin))
-  .filter(Boolean);
+const envOrigins = [...(env.clientOrigins || []), env.clientOrigin].map((origin) =>
+  normalizeOrigin(origin),
+).filter(Boolean);
 
 const allowedOrigins = new Set(
   (env.nodeEnv === 'production' ? envOrigins : [...devOrigins, ...envOrigins])
@@ -23,16 +25,16 @@ const allowedOrigins = new Set(
 );
 
 function isLocalDevOrigin(origin) {
-  return /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(origin);
+  return /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i.test(origin || '');
 }
 
 export const corsMiddleware = cors({
   origin(origin, callback) {
-    // Allow server-to-server tools (Postman, curl) and mobile/native clients.
+    // Allow server-to-server tools (Postman, curl) and native clients.
     if (!origin) return callback(null, true);
     const normalizedOrigin = normalizeOrigin(origin);
 
-    // Some browser/file contexts may send literal "null" origin.
+    // Browser/file contexts can send literal "null".
     if (env.nodeEnv !== 'production' && normalizedOrigin === 'null') {
       return callback(null, true);
     }
@@ -47,9 +49,10 @@ export const corsMiddleware = cors({
       console.warn(`[CORS] Allowed origins: ${Array.from(allowedOrigins).join(', ')}`);
     }
 
-    return callback(new Error('CORS blocked for this origin'));
+    // Deny CORS cleanly without throwing middleware errors.
+    return callback(null, false);
   },
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['Content-Length', 'Content-Type'],
   credentials: true,

@@ -11,7 +11,8 @@ const app = express();
 app.use(helmet());
 app.use(corsMiddleware);
 app.options('*', corsMiddleware);
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(sanitizeInput);
 
 app.use('/api', apiRoutes);

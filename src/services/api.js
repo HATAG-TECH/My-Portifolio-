@@ -20,6 +20,11 @@ export async function fetchProjectById(id) {
 
 export async function sendContactMessage(payload) {
   const { data } = await api.post('/contact', payload);
+  if (data && data.success === false) {
+    const error = new Error(data.message || 'Message could not be processed.');
+    error.response = { data };
+    throw error;
+  }
   return data;
 }
 

@@ -1,40 +1,28 @@
-// server/controllers/contactController.js
 import { emailService } from '../services/emailService.js';
 import { store } from '../models/jsonStore.js';
-import { env } from '../config/env.js';
 
 export const contactController = {
-  // Send contact message
   async sendMessage(req, res) {
     try {
-      const { name, email, message } = req.body;
-      
-      // Validation
+      const payload = req.body || {};
+      const { name, email, message } = payload;
+
       if (!name || !email || !message) {
-        return res.status(400).json({ 
-          error: 'All fields are required' 
-        });
+        return res.status(400).json({ error: 'All fields are required' });
       }
-      
+
       if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-        return res.status(400).json({ 
-          error: 'Invalid email format' 
-        });
+        return res.status(400).json({ error: 'Invalid email format' });
       }
 
       if (message.length < 10) {
-        return res.status(400).json({ 
-          error: 'Message must be at least 10 characters long' 
-        });
+        return res.status(400).json({ error: 'Message must be at least 10 characters long' });
       }
 
       if (message.length > 5000) {
-        return res.status(400).json({ 
-          error: 'Message must not exceed 5000 characters' 
-        });
+        return res.status(400).json({ error: 'Message must not exceed 5000 characters' });
       }
 
-      // Save to store
       const contactData = {
         id: Date.now().toString(),
         name,
@@ -42,50 +30,56 @@ export const contactController = {
         message,
         timestamp: new Date().toISOString(),
         ip: req.ip,
-        userAgent: req.get('User-Agent')
+        userAgent: req.get('User-Agent'),
       };
 
-      await store.addContact(contactData);
+      let contactSaved = false;
+      try {
+        await store.addContact(contactData);
+        contactSaved = true;
+      } catch (storeError) {
+        console.error('Failed to save contact message:', storeError.message);
+      }
 
-      // Try email delivery, but do not fail the request if SMTP delivery fails.
       let emailResult = { success: false, devMode: false };
       try {
         emailResult = await emailService.sendContactEmail({ name, email, message });
       } catch (emailError) {
-        console.error('⚠️ Email delivery failed, but contact was saved:', emailError.message);
+        console.error('Email delivery failed:', emailError.message);
       }
 
-      res.status(200).json({ 
-        success: true, 
-        message: 'Message sent successfully!',
+      return res.status(200).json({
+        success: contactSaved || Boolean(emailResult.success),
+        message: 'Message received successfully!',
+        contactSaved,
+        emailDelivered: Boolean(emailResult.success),
         devMode: emailResult.devMode || false,
-        emailDelivered: Boolean(emailResult.success)
       });
-      
     } catch (error) {
-      console.error('❌ Contact controller error:', error);
-      res.status(500).json({ 
-        error: 'Failed to send message. Please try again later.' 
+      console.error('Contact controller error:', error);
+      return res.status(200).json({
+        success: false,
+        message: 'Message could not be processed right now. Please try again later.',
       });
     }
   },
 
-  // Get contact form status (for testing)
   async getStatus(req, res) {
     try {
       const contacts = await store.getContacts();
-      
-      res.status(200).json({
+
+      return res.status(200).json({
         emailConfigured: emailService.isConfigured,
         totalMessages: contacts.length,
-        recentMessages: contacts.slice(-5).map(c => ({
-          id: c.id,
-          name: c.name,
-          timestamp: c.timestamp
-        }))
+        recentMessages: contacts.slice(-5).map((item) => ({
+          id: item.id,
+          name: item.name,
+          timestamp: item.timestamp,
+        })),
       });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
-  }
+  },
 };
+
