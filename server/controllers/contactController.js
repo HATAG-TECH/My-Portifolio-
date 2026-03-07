@@ -1,5 +1,6 @@
 import { emailService } from '../services/emailService.js';
 import { store } from '../models/jsonStore.js';
+import { env } from '../config/env.js';
 
 export const contactController = {
   async sendMessage(req, res) {
@@ -78,6 +79,8 @@ export const contactController = {
 
       return res.status(200).json({
         emailConfigured: emailService.isConfigured,
+        emailLastError: emailService.lastError,
+        dataDir: env.dataDir,
         totalMessages: contacts.length,
         recentMessages: contacts.slice(-5).map((item) => ({
           id: item.id,
