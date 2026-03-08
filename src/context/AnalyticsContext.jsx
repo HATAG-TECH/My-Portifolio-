@@ -69,12 +69,17 @@ export function AnalyticsProvider({ children }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [period, setPeriod] = useState('all');
+  const [streamStatus, setStreamStatus] = useState('connecting');
+  const [lastLiveUpdateAt, setLastLiveUpdateAt] = useState('');
   const [consent, setConsentState] = useState(() => readBooleanStorage(ANALYTICS_CONSENT_KEY, false));
   const [optOut, setOptOutState] = useState(() => readBooleanStorage(ANALYTICS_OPT_OUT_KEY, false));
 
   const queueRef = useRef([]);
   const flushTimerRef = useRef(null);
   const locationPingInFlightRef = useRef(false);
+  const streamRef = useRef(null);
+  const streamReconnectTimerRef = useRef(null);
+  const lastLiveRefreshRef = useRef(0);
 
   const dnt = navigator.doNotTrack === '1' || window.doNotTrack === '1';
   const sessionId = useMemo(() => getSessionId(), []);
@@ -101,12 +106,29 @@ export function AnalyticsProvider({ children }) {
     setLoading(true);
     setError('');
     try {
-      const [dashboardData, visitorData] = await Promise.all([
+      const [dashboardResult, visitorsResult] = await Promise.allSettled([
         fetchAnalyticsDashboard(nextPeriod),
         fetchAnalyticsVisitors(),
       ]);
-      setDashboard(dashboardData);
-      setVisitors(visitorData);
+
+      let hadFailure = false;
+
+      if (dashboardResult.status === 'fulfilled') {
+        setDashboard(dashboardResult.value);
+      } else {
+        hadFailure = true;
+      }
+
+      if (visitorsResult.status === 'fulfilled') {
+        setVisitors(visitorsResult.value);
+      } else {
+        hadFailure = true;
+      }
+
+      if (hadFailure) {
+        setError('Some analytics panels could not refresh. Live updates will retry automatically.');
+      }
+      setLastLiveUpdateAt(new Date().toISOString());
     } catch (err) {
       setError(err?.message || 'Failed to load analytics dashboard.');
     } finally {
@@ -173,13 +195,70 @@ export function AnalyticsProvider({ children }) {
 
   useEffect(() => {
     const interval = window.setInterval(() => {
+      // Fallback polling keeps dashboard fresh if SSE disconnects.
       refreshDashboard(period);
       flushQueue();
-    }, 10000);
+    }, 15000);
     return () => {
       window.clearInterval(interval);
     };
   }, [period, refreshDashboard, flushQueue]);
+
+  useEffect(() => {
+    const connectStream = () => {
+      if (streamRef.current) {
+        streamRef.current.close();
+        streamRef.current = null;
+      }
+
+      setStreamStatus('connecting');
+      const stream = new EventSource(`/api/analytics/stream?period=${encodeURIComponent(period)}`);
+      streamRef.current = stream;
+
+      stream.addEventListener('ready', () => {
+        setStreamStatus('connected');
+      });
+
+      stream.addEventListener('analytics_update', () => {
+        const now = Date.now();
+        // Avoid over-refreshing if many events are received in a burst.
+        if (now - lastLiveRefreshRef.current < 1000) return;
+        lastLiveRefreshRef.current = now;
+        refreshDashboard(period);
+      });
+
+      stream.addEventListener('heartbeat', () => {
+        setStreamStatus('connected');
+      });
+
+      stream.onerror = () => {
+        setStreamStatus('reconnecting');
+        if (streamRef.current) {
+          streamRef.current.close();
+          streamRef.current = null;
+        }
+        if (!streamReconnectTimerRef.current) {
+          streamReconnectTimerRef.current = window.setTimeout(() => {
+            streamReconnectTimerRef.current = null;
+            connectStream();
+          }, 2500);
+        }
+      };
+    };
+
+    connectStream();
+
+    return () => {
+      if (streamReconnectTimerRef.current) {
+        window.clearTimeout(streamReconnectTimerRef.current);
+        streamReconnectTimerRef.current = null;
+      }
+      if (streamRef.current) {
+        streamRef.current.close();
+        streamRef.current = null;
+      }
+    };
+  }, [period, refreshDashboard]);
 
   useEffect(() => {
     const onVisibilityChange = () => {
@@ -258,6 +337,8 @@ export function AnalyticsProvider({ children }) {
     error,
     period,
     setPeriod,
+    streamStatus,
+    lastLiveUpdateAt,
     refreshDashboard,
     trackEvent,
     flushQueue,
@@ -275,6 +356,8 @@ export function AnalyticsProvider({ children }) {
     error,
     period,
     refreshDashboard,
+    streamStatus,
+    lastLiveUpdateAt,
     trackEvent,
     flushQueue,
     consent,

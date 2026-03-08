@@ -13,6 +13,17 @@ function getRecognitionCtor() {
   return window.SpeechRecognition || window.webkitSpeechRecognition || null;
 }
 
+function isSecureMicContext() {
+  if (window.isSecureContext) return true;
+  const host = window.location?.hostname || '';
+  return host === 'localhost' || host === '127.0.0.1';
+}
+
+function getMicBlockedGuidance() {
+  const host = window.location?.hostname || 'this site';
+  return `Microphone access is blocked. In your browser, open Site settings for ${host} and set Microphone to Allow, then reload this page.`;
+}
+
 function detectDeviceProfile() {
   const ua = navigator.userAgent || '';
   const mobile = /Android|iPhone|iPad|iPod/i.test(ua);
@@ -60,7 +71,7 @@ export function useVoiceAssistant({ onTranscriptFinal, onRecognitionError }) {
   const [voiceUri, setVoiceUri] = useState('');
   const [speechRate, setSpeechRate] = useState(1);
   const [speechPitch, setSpeechPitch] = useState(1);
-  const [autoPlay, setAutoPlay] = useState(true);
+  const [autoPlay, setAutoPlay] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isSpeechPaused, setIsSpeechPaused] = useState(false);
   const [spokenMessageId, setSpokenMessageId] = useState(null);
@@ -144,7 +155,21 @@ export function useVoiceAssistant({ onTranscriptFinal, onRecognitionError }) {
       loop();
     } catch {
       setMicPermission('denied');
-      setRecognitionError('Microphone permission denied.');
+      throw new Error('mic-permission-denied');
+    }
+  }, [support.hasMedia]);
+
+  const requestMicPermission = useCallback(async () => {
+    if (!support.hasMedia) return false;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((track) => track.stop());
+      setMicPermission('granted');
+      setRecognitionError('');
+      return true;
+    } catch {
+      setMicPermission('denied');
+      return false;
     }
   }, [support.hasMedia]);
 
@@ -161,6 +186,28 @@ export function useVoiceAssistant({ onTranscriptFinal, onRecognitionError }) {
     if (!isVoiceEnabled || !isVoiceAwake) return;
     if (!support.hasRecognition) {
       setRecognitionError('Speech recognition is not supported in this browser.');
+      return;
+    }
+
+    if (!isSecureMicContext()) {
+      const msg = 'Voice input requires a secure context. Open this site on HTTPS or use localhost.';
+      setRecognitionError(msg);
+      onRecognitionError?.(msg);
+      return;
+    }
+
+    if (micPermission === 'denied') {
+      const msg = getMicBlockedGuidance();
+      setRecognitionError(msg);
+      onRecognitionError?.(msg);
+      return;
+    }
+
+    const permissionGranted = await requestMicPermission();
+    if (!permissionGranted) {
+      const msg = getMicBlockedGuidance();
+      setRecognitionError(msg);
+      onRecognitionError?.(msg);
       return;
     }
 
@@ -213,11 +260,13 @@ export function useVoiceAssistant({ onTranscriptFinal, onRecognitionError }) {
       };
 
       recognition.onerror = (event) => {
-        const msg = event?.error === 'not-allowed'
-          ? 'Microphone access is blocked. Please allow microphone permission.'
-          : event?.error === 'network'
-            ? 'Voice recognition network error. Please retry.'
-            : 'Voice recognition failed. Please speak clearly and try again.';
+        const msg = event?.error === 'not-allowed' || event?.error === 'service-not-allowed'
+          ? getMicBlockedGuidance()
+          : event?.error === 'audio-capture'
+            ? 'No working microphone was found. Connect a microphone and try again.'
+            : event?.error === 'network'
+              ? 'Voice recognition network error. Please retry.'
+              : 'Voice recognition failed. Please speak clearly and try again.';
         setRecognitionError(msg);
         onRecognitionError?.(msg);
       };
@@ -229,11 +278,15 @@ export function useVoiceAssistant({ onTranscriptFinal, onRecognitionError }) {
 
       await startVolumeMeter();
       recognition.start();
-    } catch {
-      setRecognitionError('Unable to start voice recognition.');
+    } catch (error) {
+      const msg = error?.message === 'mic-permission-denied'
+        ? getMicBlockedGuidance()
+        : 'Unable to start voice recognition.';
+      setRecognitionError(msg);
+      onRecognitionError?.(msg);
       stopVolumeMeter();
     }
-  }, [confidence, isVoiceAwake, isVoiceEnabled, onRecognitionError, onTranscriptFinal, selectedLang, startVolumeMeter, stopVolumeMeter, support.hasRecognition, support.recognitionCtor]);
+  }, [confidence, isVoiceAwake, isVoiceEnabled, micPermission, onRecognitionError, onTranscriptFinal, requestMicPermission, selectedLang, startVolumeMeter, stopVolumeMeter, support.hasRecognition, support.recognitionCtor]);
 
   const toggleListening = useCallback(() => {
     if (isListening) {
@@ -371,6 +424,7 @@ export function useVoiceAssistant({ onTranscriptFinal, onRecognitionError }) {
     confidence,
     volumeLevel,
     micPermission,
+    requestMicPermission,
     startListening,
     stopListening,
     toggleListening,

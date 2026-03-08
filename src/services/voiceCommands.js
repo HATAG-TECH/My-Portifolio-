@@ -38,6 +38,8 @@ export function parseVoiceCommand(input) {
   if (contains(text, ['wake up', 'hey assistant'])) return { type: 'voice-wake' };
 
   if (contains(text, ['read that again', 'repeat that', 'say that again', 'read last message'])) return { type: 'repeat-last' };
+  if (contains(text, ['respond by voice', 'voice response on', 'speak responses', 'talk to me'])) return { type: 'voice-replies-on' };
+  if (contains(text, ['text only', 'voice response off', 'do not speak', 'stop voice replies'])) return { type: 'voice-replies-off' };
   if (contains(text, ['stop reading'])) return { type: 'speak-stop' };
   if (contains(text, ['pause'])) return { type: 'speak-pause' };
   if (contains(text, ['resume reading'])) return { type: 'speak-resume' };
@@ -46,6 +48,22 @@ export function parseVoiceCommand(input) {
 
   if (contains(text, ['clear chat', 'start over'])) return { type: 'chat-clear' };
   if (contains(text, ['help', 'what can i say'])) return { type: 'voice-help' };
+
+  if (text.startsWith('search for ')) {
+    return { type: 'search', query: input.slice('search for '.length).trim() };
+  }
+
+  if (text.startsWith('search ')) {
+    return { type: 'search', query: input.slice('search '.length).trim() };
+  }
+
+  if (text.startsWith('find ')) {
+    return { type: 'search', query: input.slice('find '.length).trim() };
+  }
+
+  if (text.startsWith('look for ')) {
+    return { type: 'search', query: input.slice('look for '.length).trim() };
+  }
 
   if (text.startsWith('ask ')) {
     return { type: 'ask', question: input.slice(4).trim() };
@@ -62,6 +80,9 @@ export const voiceCommandsCatalog = [
   { category: 'Actions', command: 'Dark mode / Light mode', example: 'Dark mode' },
   { category: 'Voice', command: 'Stop listening / Wake up', example: 'Stop listening' },
   { category: 'Voice', command: 'Read that again', example: 'Read that again' },
+  { category: 'Voice', command: 'Respond by voice', example: 'Respond by voice' },
+  { category: 'Voice', command: 'Text only', example: 'Text only' },
   { category: 'Chat', command: 'Clear chat', example: 'Clear chat' },
+  { category: 'Chat', command: 'Search for [topic]', example: 'Search for Java projects' },
   { category: 'Chat', command: 'Ask [question]', example: 'Ask what projects has Habtamu built' },
 ];

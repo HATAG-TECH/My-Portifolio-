@@ -46,7 +46,12 @@ class EmailService {
     });
 
     if (!this.isConfigured || !this.transporter) {
-      return { success: true, devMode: true };
+      this.lastError = 'Email service is not configured. Set CONTACT_EMAIL_USER and CONTACT_EMAIL_PASS.';
+      return {
+        success: false,
+        devMode: true,
+        error: this.lastError,
+      };
     }
 
     const mailOptions = {
@@ -85,6 +90,10 @@ class EmailService {
   }
 
   generateEmailTemplate({ name, email, message }) {
+    const safeName = this.escapeHtml(name);
+    const safeEmail = this.escapeHtml(email);
+    const safeMessage = this.escapeHtml(String(message)).replace(/\n/g, '<br>');
+
     return `
       <!DOCTYPE html>
       <html>
@@ -106,17 +115,26 @@ class EmailService {
               <div class="header">New Contact Form Message</div>
               <div class="content">
                 <div class="label">Name</div>
-                <div class="value">${name}</div>
+                <div class="value">${safeName}</div>
                 <div class="label">Email</div>
-                <div class="value">${email}</div>
+                <div class="value">${safeEmail}</div>
                 <div class="label">Message</div>
-                <div class="value">${String(message).replace(/\n/g, '<br>')}</div>
+                <div class="value">${safeMessage}</div>
               </div>
             </div>
           </div>
         </body>
       </html>
     `;
+  }
+
+  escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 }
 

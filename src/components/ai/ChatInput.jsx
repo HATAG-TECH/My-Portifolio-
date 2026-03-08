@@ -102,7 +102,7 @@ function ChatInput({
       </form>
 
       <div className="mt-1 flex items-center justify-between px-1 text-[10px]" style={{ color: themeTokens.textSecondary }}>
-        <span>{isListening ? 'Listening...' : 'Voice shortcut: Ctrl/Cmd + M'}</span>
+        <span>{isListening ? 'Listening... try "search for React projects"' : 'Voice shortcut: Ctrl/Cmd + M'}</span>
         {interimTranscript ? <span className="max-w-[52%] truncate italic">{interimTranscript}</span> : null}
       </div>
     </div>

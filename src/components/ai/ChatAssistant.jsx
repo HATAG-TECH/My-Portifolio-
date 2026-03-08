@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useDragControls } from 'framer-motion';
 import { useTheme } from '../../hooks/useTheme.js';
 import { chatData } from '../../data/chatData.js';
+import { buildGreetingReply, detectGreetingIntent } from '../../data/greetingsData.js';
 import { downloadResume } from '../../services/resume.js';
 import { parseVoiceCommand, voiceCommandsCatalog } from '../../services/voiceCommands.js';
 import { useVoiceAssistant } from '../../hooks/useVoiceAssistant.js';
@@ -122,6 +123,15 @@ function generateSmartReply(input, context) {
   const activeProject = context.lastProjectId
     ? chatData.projects.find((project) => project.id === context.lastProjectId)
     : null;
+
+  const greetingIntent = detectGreetingIntent(input);
+  if (greetingIntent.isGreeting) {
+    return {
+      intent: 'greeting',
+      lastProjectId: context.lastProjectId,
+      content: buildGreetingReply(greetingIntent),
+    };
+  }
 
   if (hasAny(text, ['name', 'who are you', 'full name'])) {
     return {
@@ -284,14 +294,15 @@ export default function ChatAssistant() {
   const contextRef = useRef({ lastIntent: null, lastProjectId: null });
   const scrollRef = useRef(null);
   const replyTimeoutRef = useRef(null);
-  const dragStateRef = useRef({
-    isDragging: false,
-    startX: 0,
-    startY: 0,
-    originX: 0,
-    originY: 0,
-  });
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const dragControls = useDragControls();
+
+  const handleChatPointerDown = (event) => {
+    // Start dragging when the user double-clicks anywhere inside the chat window.
+    if (event.button !== 0) return;
+    if (event.detail >= 2) {
+      dragControls.start(event);
+    }
+  };
 
   const voice = useVoiceAssistant({
     onTranscriptFinal: (transcript) => {
@@ -328,28 +339,6 @@ export default function ChatAssistant() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, voice]);
 
-  useEffect(() => {
-    const onPointerMove = (event) => {
-      if (!dragStateRef.current.isDragging) return;
-      setDragOffset({
-        x: dragStateRef.current.originX + (event.clientX - dragStateRef.current.startX),
-        y: dragStateRef.current.originY + (event.clientY - dragStateRef.current.startY),
-      });
-    };
-
-    const onPointerUp = () => {
-      dragStateRef.current.isDragging = false;
-    };
-
-    window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('pointerup', onPointerUp);
-
-    return () => {
-      window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointerup', onPointerUp);
-    };
-  }, []);
-
   const resetConversation = () => {
     if (replyTimeoutRef.current) {
       window.clearTimeout(replyTimeoutRef.current);
@@ -369,7 +358,6 @@ export default function ChatAssistant() {
     setMessages([createWelcomeMessage()]);
     setHelperText('');
     setIsConversationMode(false);
-    setDragOffset({ x: 0, y: 0 });
     contextRef.current = { lastIntent: null, lastProjectId: null };
   };
 
@@ -496,6 +484,15 @@ export default function ChatAssistant() {
           voice.speak(spokenFriendlyText(lastAssistantMessage.content), lastAssistantMessage.id);
         }
         return true;
+      case 'voice-replies-on':
+        voice.setAutoPlay(true);
+        appendAssistantMessage('Voice replies are now enabled. I will speak responses when available.', 'voice');
+        return true;
+      case 'voice-replies-off':
+        voice.setAutoPlay(false);
+        voice.stopSpeaking();
+        appendAssistantMessage('Voice replies are now off. I will respond in text only.', 'voice');
+        return true;
       case 'speak-stop':
         voice.stopSpeaking();
         return true;
@@ -522,6 +519,13 @@ export default function ChatAssistant() {
         setShowVoiceGuide(true);
         appendAssistantMessage('Opening the voice command guide now.', 'voice_help');
         return true;
+      case 'search':
+        if (command.query) {
+          setDraft(command.query);
+          sendMessage(command.query);
+          return true;
+        }
+        return false;
       case 'ask':
         if (command.question) {
           sendMessage(command.question);
@@ -686,36 +690,26 @@ export default function ChatAssistant() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 220, damping: 22 }}
-            className={`fixed z-40 border shadow-2xl backdrop-blur-xl ${windowClass} bottom-20 right-4 left-4 rounded-2xl sm:left-auto sm:w-[380px]`}
+            className={`fixed z-40 flex max-h-[85vh] flex-col overflow-hidden border shadow-2xl backdrop-blur-xl ${windowClass} bottom-20 right-4 left-4 rounded-2xl sm:left-auto sm:w-[380px]`}
             style={{
               background: themeTokens.chatBg,
               borderColor: themeTokens.chatBorder,
             }}
-            x={dragOffset.x}
-            y={dragOffset.y}
+            drag
+            dragControls={dragControls}
+            dragListener={false}
+            dragMomentum={false}
+            onPointerDown={handleChatPointerDown}
             role="dialog"
             aria-label="Portfolio AI assistant"
           >
             <header
-              className="relative flex select-none items-center justify-between border-b px-3 py-2 cursor-grab active:cursor-grabbing"
+              className="relative flex select-none items-center justify-between border-b px-3 py-2"
               style={{
                 borderBottomColor: themeTokens.chatBorder,
                 background: isDark
                   ? 'linear-gradient(120deg, rgba(55,65,81,0.55), rgba(17,24,39,0.95))'
                   : 'linear-gradient(120deg, rgba(243,244,246,0.8), rgba(255,255,255,0.95))',
-              }}
-              onPointerDown={(event) => {
-                if (event.button !== 0) return;
-                const target = event.target;
-                if (target instanceof Element && target.closest('button, input, textarea, select, a')) return;
-                dragStateRef.current = {
-                  isDragging: true,
-                  startX: event.clientX,
-                  startY: event.clientY,
-                  originX: dragOffset.x,
-                  originY: dragOffset.y,
-                };
-                event.preventDefault();
               }}
             >
               <div className="flex items-center gap-2">
@@ -750,6 +744,19 @@ export default function ChatAssistant() {
               </div>
 
               <div className="relative flex items-center gap-1">
+                <button
+                  type="button"
+                  className="inline-flex cursor-grab active:cursor-grabbing items-center rounded-md px-2 py-1 text-xs"
+                  style={{ background: themeTokens.quickActionBg, color: themeTokens.textSecondary }}
+                  aria-label="Drag chat window"
+                  title="Drag to move"
+                  onPointerDown={(event) => {
+                    dragControls.start(event);
+                  }}
+                >
+                  ⠿
+                </button>
+
                 <button
                   type="button"
                   onClick={voice.toggleListening}
@@ -809,7 +816,7 @@ export default function ChatAssistant() {
               themeTokens={themeTokens}
             />
 
-            <div ref={scrollRef} className="max-h-[52vh] overflow-y-auto px-3 py-3 sm:max-h-[420px]" style={{ background: themeTokens.bgSecondary }}>
+            <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-3 py-3" style={{ background: themeTokens.bgSecondary }}>
               {!isConversationMode ? (
                 <div className="space-y-5 py-4">
                   <div className="text-center">

@@ -12,7 +12,7 @@ export default function VoiceSettingsPanel({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mx-3 mb-2 rounded-xl border p-3"
+      className="mx-3 mb-2 max-h-[45vh] overflow-y-auto rounded-xl border p-3"
       style={{ borderColor: themeTokens.chatBorder, background: themeTokens.quickActionBg }}
     >
       <div className="mb-2 flex items-center justify-between">
@@ -97,6 +97,15 @@ export default function VoiceSettingsPanel({
           <p>{voice.compatibility.summary}</p>
           <p>Mic permission: {voice.micPermission}</p>
           <p>TTS voices: {voice.compatibility.voicesCount}</p>
+          {voice.recognitionError ? <p className="mt-1 text-amber-500">{voice.recognitionError}</p> : null}
+          <button
+            type="button"
+            className="mt-2 rounded px-2 py-1"
+            style={{ background: themeTokens.inputBg, color: themeTokens.textPrimary }}
+            onClick={voice.requestMicPermission}
+          >
+            Retry microphone permission
+          </button>
         </div>
       </div>
     </motion.div>

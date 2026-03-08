@@ -1,5 +1,6 @@
 import { store } from '../models/jsonStore.js';
 import crypto from 'node:crypto';
+import { analyticsStreamService } from '../services/analyticsStreamService.js';
 
 function normalizePeriod(value) {
   const period = String(value || 'all').toLowerCase();
@@ -22,6 +23,13 @@ export async function trackAnalytics(req, res, next) {
     const payload = req.body || {};
     const events = Array.isArray(payload.events) ? payload.events : [];
     const summary = await store.trackAnalytics({ events });
+    if (summary?.accepted > 0) {
+      analyticsStreamService.publish({
+        source: 'track',
+        accepted: summary.accepted,
+        updatedAt: summary.updatedAt,
+      });
+    }
     return res.status(201).json({ ok: true, data: summary });
   } catch (error) {
     return next(error);
@@ -47,10 +55,21 @@ export async function trackAnalyticsLocation(req, res, next) {
     };
 
     const summary = await store.trackAnalytics({ events: [event] });
+    if (summary?.accepted > 0) {
+      analyticsStreamService.publish({
+        source: 'location',
+        accepted: summary.accepted,
+        updatedAt: summary.updatedAt,
+      });
+    }
     return res.status(201).json({ ok: true, data: summary });
   } catch (error) {
     return next(error);
   }
+}
+
+export async function streamAnalytics(req, res) {
+  analyticsStreamService.subscribe(req, res);
 }
 
 export async function getAnalyticsVisitors(req, res, next) {

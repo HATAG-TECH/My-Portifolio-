@@ -567,13 +567,57 @@ class JSONStore {
   }
 
   async getAnalyticsDashboard(period = 'all') {
-    const [visitors, locations, sections, projects, devices] = await Promise.all([
+    const [visitorsResult, locationsResult, sectionsResult, projectsResult, devicesResult] = await Promise.allSettled([
       this.getAnalyticsVisitors(),
       this.getAnalyticsLocations(period),
       this.getAnalyticsSections(period),
       this.getAnalyticsProjects(period),
       this.getAnalyticsDevices(period),
     ]);
+
+    const visitors = visitorsResult.status === 'fulfilled'
+      ? visitorsResult.value
+      : {
+          activeVisitors: 0,
+          totalUniqueVisitors: 0,
+          todayVisitors: 0,
+          updatedAt: new Date().toISOString(),
+        };
+
+    const locations = locationsResult.status === 'fulfilled'
+      ? locationsResult.value
+      : {
+          countries: [],
+          cities: [],
+          points: [],
+          updatedAt: new Date().toISOString(),
+        };
+
+    const sections = sectionsResult.status === 'fulfilled'
+      ? sectionsResult.value
+      : {
+          sections: [],
+          mostEngagingSection: null,
+          updatedAt: new Date().toISOString(),
+        };
+
+    const projects = projectsResult.status === 'fulfilled'
+      ? projectsResult.value
+      : {
+          period: String(period || 'all').toLowerCase(),
+          projects: [],
+          updatedAt: new Date().toISOString(),
+        };
+
+    const devices = devicesResult.status === 'fulfilled'
+      ? devicesResult.value
+      : {
+          devices: {},
+          browsers: {},
+          os: {},
+          screens: {},
+          updatedAt: new Date().toISOString(),
+        };
 
     return {
       period: String(period || 'all').toLowerCase(),
