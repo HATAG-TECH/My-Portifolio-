@@ -159,10 +159,10 @@ export default function Navbar() {
             ))}
           </ul>
 
-          <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
           <Link to="/analytics" className="theme-button-secondary rounded-full px-3 py-1.5 text-xs">
             Analytics
           </Link>
+          <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
           <button
             type="button"
             className="interactive theme-icon-btn rounded-full border px-2.5 py-2 text-xs"
