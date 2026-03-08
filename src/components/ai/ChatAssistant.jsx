@@ -8,15 +8,24 @@ import { useVoiceAssistant } from '../../hooks/useVoiceAssistant.js';
 import ChatMessage from './ChatMessage.jsx';
 import ChatInput from './ChatInput.jsx';
 import TypingIndicator from './TypingIndicator.jsx';
+import QuickActions from './QuickActions.jsx';
 import VoiceSettingsPanel from './VoiceSettingsPanel.jsx';
 import VoiceCommandsGuide from './VoiceCommandsGuide.jsx';
 
 const QUICK_ACTIONS = [
-  { id: 'about', label: 'About Me', prompt: 'Tell me about Habtamu' },
-  { id: 'projects', label: 'Projects', prompt: 'What projects has he built?' },
-  { id: 'skills', label: 'Skills', prompt: 'What are his skills?' },
-  { id: 'resume', label: 'Resume', prompt: 'Can I download your resume?' },
-  { id: 'contact', label: 'Contact', prompt: 'How can I contact him?' },
+  { id: 'about', label: 'About Habtamu', prompt: 'Tell me about Habtamu' },
+  { id: 'projects', label: 'View Projects', prompt: 'What projects has he built?' },
+  { id: 'skills', label: 'Skills & Tech', prompt: 'What are his skills?' },
+  { id: 'contact', label: 'Contact Info', prompt: 'How can I contact him?' },
+  { id: 'experience', label: 'Experience Timeline', prompt: 'Tell me about his experience timeline' },
+  { id: 'resume', label: 'Download Resume', prompt: 'Can I download your resume?' },
+];
+
+const EXAMPLE_QUESTIONS = [
+  'What projects has Habtamu built?',
+  'Tell me about the Job Portal System',
+  'What technologies does he use?',
+  'How can I contact him?',
 ];
 
 function normalize(value) {
@@ -268,6 +277,8 @@ export default function ChatAssistant() {
   const [draft, setDraft] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [helperText, setHelperText] = useState('');
+  const [isConversationMode, setIsConversationMode] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
   const [showVoiceGuide, setShowVoiceGuide] = useState(false);
   const contextRef = useRef({ lastIntent: null, lastProjectId: null });
@@ -314,10 +325,11 @@ export default function ChatAssistant() {
       window.clearTimeout(replyTimeoutRef.current);
       replyTimeoutRef.current = null;
     }
-    setMessages([]);
+    setMessages([createWelcomeMessage()]);
     setDraft('');
     setIsTyping(false);
     setHelperText('');
+    setIsConversationMode(false);
     contextRef.current = { lastIntent: null, lastProjectId: null };
   };
 
@@ -325,7 +337,8 @@ export default function ChatAssistant() {
     setIsOpen(true);
     setUnreadCount(0);
     setMessages([createWelcomeMessage()]);
-    setHelperText('Voice shortcut: Ctrl/Cmd + M to start listening.');
+    setHelperText('');
+    setIsConversationMode(false);
     contextRef.current = { lastIntent: null, lastProjectId: null };
   };
 
@@ -334,7 +347,9 @@ export default function ChatAssistant() {
     voice.stopSpeaking();
     setIsOpen(false);
     setUnreadCount(0);
-    resetConversation();
+    setShowMenu(false);
+    setShowVoiceGuide(false);
+    setShowVoiceSettings(false);
   };
 
   const handleToggle = () => {
@@ -343,6 +358,11 @@ export default function ChatAssistant() {
       return;
     }
     openChat();
+  };
+
+  const backToWelcome = () => {
+    setIsConversationMode(false);
+    setShowMenu(false);
   };
 
   const stopGenerating = () => {
@@ -363,9 +383,37 @@ export default function ChatAssistant() {
       intent,
     };
     setMessages((prev) => [...prev, assistantMessage]);
+    setIsConversationMode(true);
     if (voice.autoPlay) {
       voice.speak(spokenFriendlyText(content), assistantMessage.id);
     }
+  };
+
+  const copyMessage = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setHelperText('Message copied.');
+      window.setTimeout(() => setHelperText(''), 1600);
+    } catch {
+      setHelperText('Unable to copy message.');
+    }
+  };
+
+  const regenerateLastResponse = () => {
+    if (isTyping) return;
+    const lastUser = [...messages].reverse().find((message) => message.role === 'user');
+    if (!lastUser) return;
+
+    setMessages((prev) => {
+      const next = [...prev];
+      const idx = [...next].reverse().findIndex((item) => item.role === 'assistant');
+      if (idx >= 0) {
+        next.splice(next.length - 1 - idx, 1);
+      }
+      return next;
+    });
+    setDraft('');
+    sendMessage(lastUser.content);
   };
 
   const handleVoiceCommand = async (command) => {
@@ -479,6 +527,7 @@ export default function ChatAssistant() {
   const sendMessage = (nextText) => {
     const trimmed = nextText.trim();
     if (!trimmed || isTyping) return;
+    setIsConversationMode(true);
 
     const userMessage = {
       id: `user-${Date.now()}`,
@@ -540,6 +589,7 @@ export default function ChatAssistant() {
   };
 
   const handleQuickAction = (prompt) => {
+    setIsConversationMode(true);
     sendMessage(prompt);
   };
 
@@ -549,28 +599,30 @@ export default function ChatAssistant() {
 
   const themeTokens = isDark
     ? {
-        chatBg: 'rgba(10, 25, 41, 0.95)',
-        chatBorder: 'rgba(59, 130, 246, 0.3)',
+        chatBg: '#111827',
+        chatBorder: '#374151',
         userMessage: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-        aiMessage: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-        textPrimary: '#ffffff',
-        textSecondary: '#cbd5e1',
-        inputBg: '#1e293b',
-        inputBorder: '#334155',
-        quickActionBg: '#1e293b',
-        quickActionHover: '#334155',
+        aiMessage: '#374151',
+        textPrimary: '#f9fafb',
+        textSecondary: '#9ca3af',
+        inputBg: '#1f2937',
+        inputBorder: '#374151',
+        quickActionBg: '#1f2937',
+        quickActionHover: '#273244',
+        bgSecondary: '#1f2937',
       }
     : {
-        chatBg: 'rgba(255, 255, 255, 0.95)',
-        chatBorder: 'rgba(59, 130, 246, 0.2)',
+        chatBg: '#ffffff',
+        chatBorder: '#e5e7eb',
         userMessage: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-        aiMessage: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-        textPrimary: '#0f172a',
-        textSecondary: '#334155',
+        aiMessage: '#f3f4f6',
+        textPrimary: '#111827',
+        textSecondary: '#6b7280',
         inputBg: '#f8fafc',
         inputBorder: '#e2e8f0',
-        quickActionBg: '#f1f5f9',
-        quickActionHover: '#e2e8f0',
+        quickActionBg: '#f9fafb',
+        quickActionHover: '#f1f5f9',
+        bgSecondary: '#f9fafb',
       };
 
   return (
@@ -608,44 +660,96 @@ export default function ChatAssistant() {
             role="dialog"
             aria-label="Portfolio AI assistant"
           >
-            <header className="flex items-center justify-between border-b px-3 py-2" style={{ borderBottomColor: themeTokens.chatBorder }}>
-              <div>
-                <h2 className="font-heading text-sm font-semibold" style={{ color: themeTokens.textPrimary }}>AI Assistant</h2>
-                <p className="text-[11px]" style={{ color: themeTokens.textSecondary }}>
-                  Ask about Habtamu's projects, skills, and contact details
-                </p>
-                <p className="text-[10px]" style={{ color: themeTokens.textSecondary }}>
-                  {voice.compatibility.summary}
-                </p>
+            <header
+              className="relative flex items-center justify-between border-b px-3 py-2"
+              style={{
+                borderBottomColor: themeTokens.chatBorder,
+                background: isDark
+                  ? 'linear-gradient(120deg, rgba(55,65,81,0.55), rgba(17,24,39,0.95))'
+                  : 'linear-gradient(120deg, rgba(243,244,246,0.8), rgba(255,255,255,0.95))',
+              }}
+            >
+              <div className="flex items-center gap-2">
+                {isConversationMode ? (
+                  <button
+                    type="button"
+                    onClick={backToWelcome}
+                    className="rounded-md px-2 py-1 text-xs"
+                    style={{ background: themeTokens.quickActionBg, color: themeTokens.textPrimary }}
+                  >
+                    ← Back
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={closeChat}
+                    className="rounded-md px-2 py-1 text-xs"
+                    style={{ background: themeTokens.quickActionBg, color: themeTokens.textPrimary }}
+                  >
+                    ✕
+                  </button>
+                )}
+
+                <div>
+                  <h2 className="font-heading text-sm font-semibold" style={{ color: themeTokens.textPrimary }}>
+                    Chat with Habtamu&apos;s AI
+                  </h2>
+                  <p className="text-[10px]" style={{ color: themeTokens.textSecondary }}>
+                    {isConversationMode ? 'Ask a follow-up question' : 'How can I help you today?'}
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-1">
+
+              <div className="relative flex items-center gap-1">
                 <button
                   type="button"
-                  onClick={() => setShowVoiceGuide((prev) => !prev)}
-                  className="rounded-md px-2 py-1 text-xs"
-                  style={{ background: themeTokens.quickActionBg, color: themeTokens.textPrimary }}
-                  aria-label="Voice command guide"
+                  onClick={voice.toggleListening}
+                  className={`relative inline-flex h-8 w-8 items-center justify-center rounded-full text-white ${voice.isListening ? 'bg-red-500' : 'bg-slate-500'}`}
+                  aria-label="Toggle voice listening"
+                  title={voice.isListening ? 'Listening...' : 'Voice input'}
                 >
-                  Commands
+                  {voice.isListening && (
+                    <motion.span
+                      className="absolute inset-0 rounded-full border border-red-200"
+                      animate={{ scale: [1, 1.22, 1], opacity: [0.9, 0.35, 0.9] }}
+                      transition={{ duration: 1.1, repeat: Infinity }}
+                    />
+                  )}
+                  🎤
                 </button>
+
                 <button
                   type="button"
-                  onClick={() => setShowVoiceSettings((prev) => !prev)}
+                  onClick={() => setShowMenu((prev) => !prev)}
                   className="rounded-md px-2 py-1 text-xs"
                   style={{ background: themeTokens.quickActionBg, color: themeTokens.textPrimary }}
-                  aria-label="Voice settings"
+                  aria-label="Open chat menu"
                 >
-                  Voice
+                  ⋮
                 </button>
-                <button
-                  type="button"
-                  onClick={closeChat}
-                  className="rounded-md px-2 py-1 text-xs"
-                  style={{ background: themeTokens.quickActionBg, color: themeTokens.textPrimary }}
-                  aria-label="Close chat"
-                >
-                  Close
-                </button>
+
+                {showMenu && (
+                  <div
+                    className="absolute right-0 top-10 z-20 w-44 rounded-xl border p-1 text-xs shadow-xl"
+                    style={{ borderColor: themeTokens.chatBorder, background: themeTokens.chatBg }}
+                  >
+                    <button type="button" className="w-full rounded-lg px-2 py-1 text-left" onClick={() => { setShowVoiceSettings(true); setShowMenu(false); }}>
+                      Voice settings
+                    </button>
+                    <button type="button" className="w-full rounded-lg px-2 py-1 text-left" onClick={() => { setShowVoiceGuide(true); setShowMenu(false); }}>
+                      Voice commands guide
+                    </button>
+                    <button type="button" className="w-full rounded-lg px-2 py-1 text-left" onClick={() => { regenerateLastResponse(); setShowMenu(false); }}>
+                      Regenerate response
+                    </button>
+                    <button type="button" className="w-full rounded-lg px-2 py-1 text-left" onClick={() => { resetConversation(); setShowMenu(false); }}>
+                      Clear conversation
+                    </button>
+                    <button type="button" className="w-full rounded-lg px-2 py-1 text-left" onClick={() => { closeChat(); setShowMenu(false); }}>
+                      Close
+                    </button>
+                  </div>
+                )}
               </div>
             </header>
 
@@ -656,68 +760,76 @@ export default function ChatAssistant() {
               themeTokens={themeTokens}
             />
 
-            <div
-              ref={scrollRef}
-              className="max-h-[52vh] space-y-2 overflow-y-auto px-3 py-3 sm:max-h-[420px]"
-            >
-              {messages.map((message) => (
-                <ChatMessage
-                  key={message.id}
-                  message={message}
-                  isDark={isDark}
-                  themeTokens={themeTokens}
-                  isBeingSpoken={voice.isSpeaking && voice.spokenMessageId === message.id}
-                  spokenCharIndex={voice.spokenCharIndex}
-                />
-              ))}
-              {isTyping && <TypingIndicator onStop={stopGenerating} themeTokens={themeTokens} />}
-            </div>
+            <div ref={scrollRef} className="max-h-[52vh] overflow-y-auto px-3 py-3 sm:max-h-[420px]" style={{ background: themeTokens.bgSecondary }}>
+              {!isConversationMode ? (
+                <div className="space-y-5 py-4">
+                  <div className="text-center">
+                    <div className="mx-auto mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow">AI</div>
+                    <h3 className="text-base font-semibold" style={{ color: themeTokens.textPrimary }}>
+                      Hi, I&apos;m Habtamu&apos;s assistant
+                    </h3>
+                    <p className="mx-auto mt-1 max-w-[290px] text-xs" style={{ color: themeTokens.textSecondary }}>
+                      Ask me anything about his projects, skills, experience, and contact details.
+                    </p>
+                  </div>
 
-            <div className="mx-3 mb-2 rounded-xl border px-3 py-2 text-[11px]" style={{ borderColor: themeTokens.chatBorder, background: themeTokens.quickActionBg, color: themeTokens.textSecondary }}>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={voice.toggleListening}
-                    disabled={!voice.isVoiceEnabled || !voice.isVoiceAwake || !voice.support.hasRecognition}
-                    className={`relative inline-flex h-8 w-8 items-center justify-center rounded-full text-white ${voice.isListening ? 'bg-red-500' : 'bg-blue-500'}`}
-                    aria-label="Toggle voice listening"
-                    title={voice.isListening ? 'Listening...' : 'Start voice input (Ctrl/Cmd + M)'}
-                  >
-                    {voice.isListening && (
-                      <motion.span
-                        className="absolute inset-0 rounded-full border border-red-200"
-                        animate={{ scale: [1, 1.25, 1], opacity: [0.9, 0.3, 0.9] }}
-                        transition={{ duration: 1.2, repeat: Infinity }}
-                      />
-                    )}
-                    <span>{voice.isListening ? '◉' : '🎤'}</span>
-                  </button>
-                  <div className="w-20 rounded-full bg-slate-500/20">
-                    <div
-                      className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"
-                      style={{ width: `${Math.max(4, Math.round(voice.volumeLevel * 100))}%` }}
+                  <div className="rounded-xl border p-3 text-center text-xs" style={{ borderColor: themeTokens.chatBorder, background: themeTokens.chatBg }}>
+                    How can I help you today?
+                  </div>
+
+                  <div>
+                    <p className="mb-2 text-[11px] font-semibold" style={{ color: themeTokens.textSecondary }}>Suggested questions</p>
+                    <QuickActions
+                      actions={QUICK_ACTIONS}
+                      visible
+                      onSelect={handleQuickAction}
+                      isDark={isDark}
+                      themeTokens={themeTokens}
                     />
                   </div>
-                  <span>
-                    {voice.isListening ? 'Listening...' : voice.isProcessing ? 'Processing...' : 'Idle'}
-                  </span>
-                </div>
 
-                <div className="flex items-center gap-1">
-                  <button type="button" onClick={() => voice.speak(spokenFriendlyText(lastAssistantMessage?.content || ''), lastAssistantMessage?.id)} className="rounded px-2 py-1" style={{ background: themeTokens.inputBg }}>Play</button>
-                  <button type="button" onClick={voice.isSpeechPaused ? voice.resumeSpeaking : voice.pauseSpeaking} className="rounded px-2 py-1" style={{ background: themeTokens.inputBg }}>
-                    {voice.isSpeechPaused ? 'Resume' : 'Pause'}
-                  </button>
-                  <button type="button" onClick={voice.stopSpeaking} className="rounded px-2 py-1" style={{ background: themeTokens.inputBg }}>Stop</button>
+                  <div className="grid gap-2">
+                    {EXAMPLE_QUESTIONS.map((question) => (
+                      <button
+                        key={question}
+                        type="button"
+                        onClick={() => handleQuickAction(question)}
+                        className="rounded-lg border p-2 text-left text-xs transition hover:shadow"
+                        style={{ borderColor: themeTokens.chatBorder, background: themeTokens.chatBg, color: themeTokens.textPrimary }}
+                      >
+                        {question}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-3">
+                  {messages.map((message) => (
+                    <ChatMessage
+                      key={message.id}
+                      message={message}
+                      isDark={isDark}
+                      themeTokens={themeTokens}
+                      isBeingSpoken={voice.isSpeaking && voice.spokenMessageId === message.id}
+                      spokenCharIndex={voice.spokenCharIndex}
+                      onCopy={copyMessage}
+                    />
+                  ))}
+                  {isTyping && <TypingIndicator onStop={stopGenerating} themeTokens={themeTokens} />}
 
-              {voice.interimTranscript && (
-                <p className="mt-1 italic">Heard: {voice.interimTranscript}</p>
-              )}
-              {voice.recognitionError && (
-                <p className="mt-1 text-red-400">{voice.recognitionError}</p>
+                  {!isTyping && messages.some((item) => item.role === 'user') && (
+                    <div className="flex justify-center">
+                      <button
+                        type="button"
+                        onClick={regenerateLastResponse}
+                        className="rounded-full border px-3 py-1 text-[11px]"
+                        style={{ borderColor: themeTokens.chatBorder, background: themeTokens.chatBg }}
+                      >
+                        Regenerate response
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
@@ -729,13 +841,13 @@ export default function ChatAssistant() {
               value={draft}
               onChange={setDraft}
               onSend={() => sendMessage(draft)}
-              quickActions={QUICK_ACTIONS}
-              showQuickActions={showQuickActions}
-              onQuickAction={handleQuickAction}
-              isDark={isDark}
               isGenerating={isTyping}
               onStopGenerating={stopGenerating}
               themeTokens={themeTokens}
+              onToggleListening={voice.toggleListening}
+              isListening={voice.isListening}
+              interimTranscript={voice.interimTranscript}
+              voiceEnabled={voice.isVoiceEnabled && voice.isVoiceAwake && voice.support.hasRecognition}
             />
 
             <VoiceCommandsGuide
