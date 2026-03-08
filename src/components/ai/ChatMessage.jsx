@@ -1,6 +1,5 @@
 import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import ResumeDownloadButton from '../ui/ResumeDownloadButton.jsx';
 
 function parseContent(content) {
   const parts = [];
@@ -75,17 +74,6 @@ function ChatMessage({ message, isDark, themeTokens }) {
               {part.value}
             </p>
           ),
-        )}
-        {message.action === 'resume_download' && (
-          <div className="mt-3">
-            <ResumeDownloadButton
-              label="Download Resume"
-              compact
-              pulseOnLoad={false}
-              placement="chat"
-              className="w-full justify-center"
-            />
-          </div>
         )}
         <span className="mt-1 hidden text-[10px] opacity-75 group-hover:block">
           {formatTimestamp(message.ts)}

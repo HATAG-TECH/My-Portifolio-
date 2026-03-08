@@ -177,43 +177,77 @@ h6 {
   background: color-mix(in oklab, var(--theme-surface) 75%, transparent);
 }
 
-.resume-download-btn {
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  box-shadow: 0 0 16px rgba(99, 102, 241, 0.35);
-}
-
-.resume-download-btn:hover {
-  box-shadow: 0 0 26px rgba(99, 102, 241, 0.55);
-}
-
-.resume-download-spinner {
-  animation: resume-spin 0.8s linear infinite;
-}
-
-.resume-panel {
-  backdrop-filter: blur(16px);
-}
-
-.resume-dot {
+.resume-btn {
   display: inline-flex;
-  height: 14px;
-  width: 14px;
+  align-items: center;
+  gap: 0.5rem;
   border-radius: 999px;
+  padding: 0.62rem 1.1rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.resume-btn:hover {
+  transform: translateY(-1px);
+}
+
+.resume-btn-primary {
+  color: #f8fafc;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, var(--accent-color), #8b5cf6);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+
+.resume-btn-primary:hover {
+  box-shadow: 0 0 24px var(--accent-glow);
+}
+
+.resume-btn-secondary {
+  color: var(--theme-text);
+  border: 1px solid color-mix(in oklab, var(--accent-color) 45%, var(--theme-border));
+  background: color-mix(in oklab, var(--theme-surface) 78%, transparent);
+}
+
+.resume-btn-tertiary {
+  color: var(--accent-color);
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 0.35rem 0.3rem;
+}
+
+.resume-btn-tertiary:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  box-shadow: none;
+}
+
+.resume-menu {
   border: 1px solid var(--theme-border);
-  background: color-mix(in oklab, var(--theme-surface) 80%, transparent);
+  backdrop-filter: blur(14px);
 }
 
-.resume-dot-active {
+.resume-chip {
+  border-radius: 0.6rem;
+  border: 1px solid var(--theme-border);
+  background: color-mix(in oklab, var(--theme-surface) 82%, transparent);
+  color: var(--theme-text-muted);
+  padding: 0.45rem 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.resume-chip-active {
   border-color: transparent;
-  background: radial-gradient(circle at center, #3b82f6 30%, #8b5cf6 100%);
-  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent-color) 25%, transparent);
+  color: #f8fafc;
+  background: linear-gradient(135deg, var(--accent-color), #8b5cf6);
 }
 
-@keyframes resume-spin {
-  to {
-    transform: rotate(360deg);
-  }
+.resume-check {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--theme-text);
 }
 
 .theme-input {
