@@ -1,12 +1,12 @@
 {
-  "totalDownloads": 9,
+  "totalDownloads": 10,
   "byFormat": {
     "md": 1,
-    "pdf": 6,
+    "pdf": 7,
     "docx": 2
   },
   "byPlacement": {
-    "contact": 3,
+    "contact": 4,
     "hero": 2,
     "floating": 4
   },
@@ -91,6 +91,15 @@
       "ip": "::1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
       "ts": "2026-03-08T10:54:26.205Z"
+    },
+    {
+      "id": "1772967479459-o94j53",
+      "format": "pdf",
+      "placement": "contact",
+      "source": "static",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "ts": "2026-03-08T10:57:59.457Z"
     }
   ]
 }
