@@ -682,21 +682,22 @@ export default function ChatAssistant() {
       <AnimatePresence>
         {isOpen && (
           <motion.section
-            initial={{ opacity: 0, y: 24, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.96 }}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 220, damping: 22 }}
             className={`fixed z-40 border shadow-2xl backdrop-blur-xl ${windowClass} bottom-20 right-4 left-4 rounded-2xl sm:left-auto sm:w-[380px]`}
             style={{
               background: themeTokens.chatBg,
               borderColor: themeTokens.chatBorder,
-              transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)`,
             }}
+            x={dragOffset.x}
+            y={dragOffset.y}
             role="dialog"
             aria-label="Portfolio AI assistant"
           >
             <header
-              className="relative flex items-center justify-between border-b px-3 py-2"
+              className="relative flex select-none items-center justify-between border-b px-3 py-2 cursor-grab active:cursor-grabbing"
               style={{
                 borderBottomColor: themeTokens.chatBorder,
                 background: isDark
@@ -714,6 +715,7 @@ export default function ChatAssistant() {
                   originX: dragOffset.x,
                   originY: dragOffset.y,
                 };
+                event.preventDefault();
               }}
             >
               <div className="flex items-center gap-2">
