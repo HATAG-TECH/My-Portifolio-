@@ -1,14 +1,16 @@
 {
-  "totalDownloads": 10,
+  "totalDownloads": 20,
   "byFormat": {
     "md": 1,
-    "pdf": 7,
-    "docx": 2
+    "pdf": 10,
+    "docx": 4,
+    "txt": 5
   },
   "byPlacement": {
-    "contact": 4,
-    "hero": 2,
-    "floating": 4
+    "contact": 5,
+    "hero": 7,
+    "floating": 4,
+    "about": 4
   },
   "history": [
     {
@@ -100,6 +102,96 @@
       "ip": "::1",
       "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
       "ts": "2026-03-08T10:57:59.457Z"
+    },
+    {
+      "id": "1772968255038-4ccqg3",
+      "format": "pdf",
+      "placement": "hero",
+      "source": "static",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "ts": "2026-03-08T11:10:55.036Z"
+    },
+    {
+      "id": "1772968308486-pgzfzk",
+      "format": "txt",
+      "placement": "hero",
+      "source": "generated-custom",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "ts": "2026-03-08T11:11:48.483Z"
+    },
+    {
+      "id": "1772968338281-xf1usf",
+      "format": "txt",
+      "placement": "hero",
+      "source": "generated-custom",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "ts": "2026-03-08T11:12:18.279Z"
+    },
+    {
+      "id": "1772968360428-w72pee",
+      "format": "txt",
+      "placement": "hero",
+      "source": "generated-custom",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "ts": "2026-03-08T11:12:40.424Z"
+    },
+    {
+      "id": "1772968379079-1kogng",
+      "format": "pdf",
+      "placement": "about",
+      "source": "static",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "ts": "2026-03-08T11:12:59.075Z"
+    },
+    {
+      "id": "1772968420224-ptwbxe",
+      "format": "docx",
+      "placement": "contact",
+      "source": "static",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "ts": "2026-03-08T11:13:40.221Z"
+    },
+    {
+      "id": "1772968585381-fdgszc",
+      "format": "txt",
+      "placement": "hero",
+      "source": "generated-custom",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "ts": "2026-03-08T11:16:25.378Z"
+    },
+    {
+      "id": "1772968617467-wi4fnf",
+      "format": "txt",
+      "placement": "about",
+      "source": "generated-custom",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "ts": "2026-03-08T11:16:57.461Z"
+    },
+    {
+      "id": "1772968650646-pcbc06",
+      "format": "docx",
+      "placement": "about",
+      "source": "static",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "ts": "2026-03-08T11:17:30.643Z"
+    },
+    {
+      "id": "1772968727740-dwezif",
+      "format": "pdf",
+      "placement": "about",
+      "source": "static",
+      "ip": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+      "ts": "2026-03-08T11:18:47.738Z"
     }
   ]
 }
