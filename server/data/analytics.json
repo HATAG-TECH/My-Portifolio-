@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-03-08T13:33:01.083Z",
+  "updatedAt": "2026-03-08T13:47:18.760Z",
   "sessions": {
     "sess_test_1": {
       "firstSeenAt": "2026-03-08T13:33:01.083Z",
@@ -13,6 +13,19 @@
       "screen": "1920x1080",
       "locale": "en-US",
       "timezone": "Africa/Addis_Ababa",
+      "active": false
+    },
+    "sess_geo_demo": {
+      "firstSeenAt": "2026-03-08T13:47:18.760Z",
+      "lastSeenAt": "2026-03-08T13:47:18.760Z",
+      "country": "ET",
+      "city": "Addis Ababa",
+      "browser": "unknown",
+      "os": "unknown",
+      "deviceType": "unknown",
+      "screen": "unknown",
+      "locale": "unknown",
+      "timezone": "unknown",
       "active": true
     }
   },
@@ -118,6 +131,33 @@
       "timezone": "Africa/Addis_Ababa",
       "lat": null,
       "lng": null,
+      "consent": true,
+      "dnt": false
+    },
+    {
+      "id": "1772977638760-re26574l",
+      "ts": "2026-03-08T13:47:18.760Z",
+      "sessionId": "sess_geo_demo",
+      "eventType": "location_ping",
+      "page": "portfolio-home",
+      "path": "/",
+      "sectionId": "unknown",
+      "projectId": "unknown",
+      "projectAction": "none",
+      "dwellMs": 0,
+      "scrollDepth": 0,
+      "country": "ET",
+      "city": "Addis Ababa",
+      "region": "unknown",
+      "browser": "unknown",
+      "os": "unknown",
+      "deviceType": "unknown",
+      "screen": "unknown",
+      "locale": "unknown",
+      "timezone": "unknown",
+      "lat": 8.9806,
+      "lng": 38.7578,
+      "anonIpHash": "eff8e7ca506627fe15dda5e0",
       "consent": true,
       "dnt": false
     }

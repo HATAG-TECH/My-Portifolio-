@@ -272,9 +272,10 @@ class JSONStore {
   }
 
   normalizeAnalyticsEvent(rawEvent = {}) {
+    const providedTs = Date.parse(rawEvent.ts || rawEvent.timestamp || '');
     return {
       id: this.createAnalyticsEventId(),
-      ts: new Date().toISOString(),
+      ts: Number.isFinite(providedTs) ? new Date(providedTs).toISOString() : new Date().toISOString(),
       sessionId: this.normalizeText(rawEvent.sessionId, 'anonymous', 72),
       eventType: this.normalizeText(rawEvent.eventType, 'unknown', 40),
       page: this.normalizeText(rawEvent.page, 'unknown', 120),
