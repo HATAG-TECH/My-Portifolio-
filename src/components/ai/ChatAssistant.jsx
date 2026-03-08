@@ -159,9 +159,10 @@ function generateSmartReply(input, context) {
       intent: 'resume',
       lastProjectId: context.lastProjectId,
       content:
-        `Absolutely. You can download Habtamu's resume below.\n` +
-        `If you add a PDF to /public/resume.pdf, this button will automatically download it.`,
-      action: 'resume_download',
+        `You can download Habtamu's resume from three places:\n` +
+        `- Hero section: "Get Resume"\n` +
+        `- About section: "Download CV"\n` +
+        `- Contact section: "My Resume"`,
     };
   }
 
@@ -338,7 +339,6 @@ export default function ChatAssistant() {
           content: reply.content,
           ts: Date.now(),
           intent: reply.intent,
-          action: reply.action || null,
         };
 
         setMessages((prev) => [...prev, assistantMessage]);

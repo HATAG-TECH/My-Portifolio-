@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { sendContactMessage } from '../../services/api.js';
-import ResumeDownloadButton from '../ui/ResumeDownloadButton.jsx';
+import ResumeButton from '../ui/ResumeButton.jsx';
 
 function validateForm({ name, email, message, consent }) {
   if (!name.trim() || !email.trim() || !message.trim()) {
@@ -188,10 +188,11 @@ export default function ContactForm() {
           </button>
 
           <div className="flex justify-center pt-1">
-            <ResumeDownloadButton
-              label="Download Resume PDF"
+            <ResumeButton
+              label="My Resume"
+              icon="📑"
               placement="contact"
-              pulseOnLoad={false}
+              variant="tertiary"
             />
           </div>
         </motion.form>

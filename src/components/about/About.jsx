@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import ResumeDownloadButton from '../ui/ResumeDownloadButton.jsx';
+import ResumeButton from '../ui/ResumeButton.jsx';
 
 export default function About() {
   return (
@@ -19,7 +19,12 @@ export default function About() {
           strong engineering come together to create modern digital experiences.
         </p>
         <div className="mt-5">
-          <ResumeDownloadButton label="Get My Resume" placement="about" />
+          <ResumeButton
+            label="Download CV"
+            icon="📋"
+            placement="about"
+            variant="secondary"
+          />
         </div>
       </div>
 

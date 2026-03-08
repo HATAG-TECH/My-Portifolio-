@@ -1,0 +1,17 @@
+﻿Habtamu Shewamene
+Junior Full-Stack Developer
+Addis Ababa, Ethiopia | habtamushewamene905@gmail.com
+GitHub: https://github.com/HATAG-TECH
+LinkedIn: https://www.linkedin.com/in/habtamu-shewamene-25a5a63b5/
+
+PROFESSIONAL SUMMARY
+Junior full-stack developer focused on React, Node.js, Java Spring Boot, and MySQL.
+
+PROJECT HIGHLIGHTS
+- Job Portal System (Java Spring Boot, MySQL, Thymeleaf)
+- Inventory Management (Node.js, Express, MongoDB, React)
+- Crypto Tracker (React, WebSockets, Chart.js)
+
+EXPERIENCE
+- Junior Full-Stack Developer (Freelance) | 2024 - Present
+- Web Development Intern | 2023 - 2024

@@ -1,7 +1,7 @@
 import { store } from '../models/jsonStore.js';
 
-const ALLOWED_FORMATS = new Set(['pdf', 'doc', 'txt', 'md']);
-const ALLOWED_PLACEMENTS = new Set(['hero', 'about', 'contact', 'footer', 'chat', 'floating', 'unknown']);
+const ALLOWED_FORMATS = new Set(['pdf', 'docx', 'txt', 'md']);
+const ALLOWED_PLACEMENTS = new Set(['hero', 'about', 'contact', 'unknown']);
 
 function normalizeSafe(value) {
   return String(value || '').trim().toLowerCase();

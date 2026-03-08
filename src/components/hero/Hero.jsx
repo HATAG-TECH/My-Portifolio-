@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import MagneticButton from '../ui/MagneticButton.jsx';
-import ResumeDownloadButton from '../ui/ResumeDownloadButton.jsx';
+import ResumeButton from '../ui/ResumeButton.jsx';
 import HeroBackground from './HeroBackground.jsx';
 import { useTypewriter } from '../../hooks/useTypewriter.js';
 
@@ -72,7 +72,12 @@ export default function Hero() {
             >
               View Projects
             </MagneticButton>
-            <ResumeDownloadButton label="Get My Resume" placement="hero" />
+            <ResumeButton
+              label="Get Resume"
+              icon="📄"
+              placement="hero"
+              variant="primary"
+            />
             <MagneticButton
               onClick={() => scrollTo('contact')}
               className="theme-button-secondary interactive inline-flex items-center justify-center rounded-full px-6 py-2.5 text-sm font-semibold transition"
