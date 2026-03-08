@@ -31,9 +31,10 @@ function formatTimestamp(ts) {
   }
 }
 
-function ChatMessage({ message, isDark, themeTokens }) {
+function ChatMessage({ message, isDark, themeTokens, spokenCharIndex = 0, isBeingSpoken = false }) {
   const isUser = message.role === 'user';
   const contentParts = useMemo(() => parseContent(message.content), [message.content]);
+  const hasCode = useMemo(() => contentParts.some((part) => part.type === 'code'), [contentParts]);
   const bubbleClass = isUser
     ? 'text-white'
     : isDark
@@ -59,7 +60,14 @@ function ChatMessage({ message, isDark, themeTokens }) {
               }
         }
       >
-        {contentParts.map((part, index) =>
+        {!hasCode && isBeingSpoken ? (
+          <p className="whitespace-pre-line">
+            <span className="rounded bg-white/18 px-0.5">
+              {message.content.slice(0, Math.max(0, spokenCharIndex))}
+            </span>
+            <span>{message.content.slice(Math.max(0, spokenCharIndex))}</span>
+          </p>
+        ) : contentParts.map((part, index) =>
           part.type === 'code' ? (
             <div key={`${message.id}-code-${index}`} className="my-2 overflow-hidden rounded-lg border border-white/15 bg-slate-950/85">
               <div className="border-b border-white/10 px-3 py-1 text-[10px] uppercase tracking-wide text-slate-300">

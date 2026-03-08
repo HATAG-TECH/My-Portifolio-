@@ -169,5 +169,23 @@
     "timestamp": "2026-03-07T21:59:38.196Z",
     "ip": "::1",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1772978127223",
+    "name": "haset",
+    "email": "haset@gmail.com",
+    "message": "hello i'm haset i like your portfolio design your projects",
+    "timestamp": "2026-03-08T13:55:27.223Z",
+    "ip": "::1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1772979560591",
+    "name": "elan",
+    "email": "elan@gmail.com",
+    "message": "hello i'm elan i'm so crazy about your work",
+    "timestamp": "2026-03-08T14:19:20.591Z",
+    "ip": "::1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
   }
 ]
