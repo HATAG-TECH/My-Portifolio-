@@ -49,6 +49,7 @@ export const contactController = {
           success: false,
           message: 'Message was saved, but email delivery failed.',
           error: emailResult?.error || 'Unable to send email right now.',
+          reason: emailResult?.reason || 'smtp_error',
           contactSaved,
           emailDelivered: false,
           emailConfigured: emailService.isConfigured,
