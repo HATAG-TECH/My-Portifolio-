@@ -1,5 +1,6 @@
 import { createContext, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  buildApiUrl,
   fetchAnalyticsDashboard,
   fetchAnalyticsVisitors,
   trackAnalyticsLocation,
@@ -212,7 +213,7 @@ export function AnalyticsProvider({ children }) {
       }
 
       setStreamStatus('connecting');
-      const stream = new EventSource(`/api/analytics/stream?period=${encodeURIComponent(period)}`);
+      const stream = new EventSource(buildApiUrl('/analytics/stream', { period }));
       streamRef.current = stream;
 
       stream.addEventListener('ready', () => {

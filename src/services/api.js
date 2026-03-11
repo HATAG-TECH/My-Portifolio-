@@ -1,7 +1,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 const DEFAULT_TIMEOUT_MS = 30000;
 
-function buildUrl(path, params = {}) {
+export function buildApiUrl(path, params = {}) {
   const isAbsoluteBase = /^https?:\/\//i.test(API_BASE_URL);
   const url = new URL(`${API_BASE_URL}${path}`, window.location.origin);
   Object.entries(params).forEach(([key, value]) => {
@@ -46,7 +46,7 @@ async function request(path, options = {}) {
   }
 
   try {
-    const response = await fetch(buildUrl(path, params), {
+    const response = await fetch(buildApiUrl(path, params), {
       method,
       credentials,
       headers: requestHeaders,
