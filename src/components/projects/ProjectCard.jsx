@@ -110,7 +110,7 @@ export default function ProjectCard({
               image.dataset.fallbackApplied = 'true';
               // Use a conceptually appropriate fallback for Bug Tracking System
               if (project.id === 'bug-tracker') {
-                image.src = '/bug-tracker.jpg';
+                image.src = '/bug tracking.png';
               } else {
                 image.src = '/admin.jpg';
               }
