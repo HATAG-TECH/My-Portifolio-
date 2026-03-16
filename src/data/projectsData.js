@@ -271,7 +271,7 @@ export const projects = [
     complexity: 5,
     difficulty: 5,
     screenshot:
-      'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1200&q=80',
+      '/admin.jpg',
     features: [
       { title: 'Multi-Role Access', icon: 'RA', detail: 'Distinct flows for seekers, employers, admins.' },
       { title: 'Application Pipeline', icon: 'AP', detail: 'Track candidate stages and recruiter actions.' },
