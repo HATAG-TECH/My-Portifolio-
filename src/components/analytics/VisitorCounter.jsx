@@ -18,7 +18,7 @@ function useAnimatedValue(targetValue, duration = 600) {
 
     rafId = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(rafId);
-  }, [targetValue]);
+  }, [duration, targetValue, value]);
 
   return value;
 }
